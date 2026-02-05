@@ -29,22 +29,16 @@ module "compute" {
   source  = "oracle-terraform-modules/compute-instance/oci"
   version = "2.4.0"
 
-  compartment_id        = var.compartment_id
+  compartment_ocid      = var.compartment_id
   instance_count        = var.instance_count
   ad_number             = 1
   instance_display_name = "${var.project_name}-instance"
   
   source_type = "image"
-  source_id   = var.instance_image_id
+  source_ocid = var.instance_image_id
   
-  subnet_id = module.vcn.subnet_ids["public"]
-  shape     = "VM.Standard.E2.1.Micro"
+  subnet_ocids = [module.vcn.subnet_ids["public"]]
+  shape        = "VM.Standard.E2.1.Micro"
   
   ssh_public_keys = var.ssh_public_key
-  
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-    Project     = var.project_name
-  }
 }
