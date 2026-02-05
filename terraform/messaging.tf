@@ -39,7 +39,7 @@ resource "oci_queue_queue" "dlq" {
   display_name   = "${var.project_name}-queue-dlq"
 
   # DLQ tem retenção maior para análise de erros
-  retention_in_seconds  = 1209600 # 14 dias
+  retention_in_seconds  = 604800 # 7 dias (máximo permitido)
   timeout_in_seconds    = 30
   visibility_in_seconds = 30
 
