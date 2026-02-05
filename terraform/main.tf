@@ -9,6 +9,12 @@ terraform {
   }
 }
 
+# Data source para obter availability domains
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.compartment_id
+}
+
+# Módulo VCN com subnet
 module "vcn" {
   source  = "oracle-terraform-modules/vcn/oci"
   version = "3.6.0"
@@ -25,19 +31,47 @@ module "vcn" {
   create_service_gateway  = false
 }
 
-module "subnet" {
-  source  = "oracle-terraform-modules/vcn/oci//modules/subnet"
-  version = "3.6.0"
-
-  compartment_id = var.compartment_id
-  vcn_id         = module.vcn.vcn_id
-  
-  cidr_block     = "10.0.1.0/24"
-  display_name   = "${var.project_name}-public-subnet"
-  dns_label      = "public"
-  route_table_id = module.vcn.ig_route_id
-  
+# Criar subnet manualmente usando outputs do módulo VCN
+resource "oci_core_subnet" "public" {
+  compartment_id    = var.compartment_id
+  vcn_id            = module.vcn.vcn_id
+  cidr_block        = "10.0.1.0/24"
+  display_name      = "${var.project_name}-public-subnet"
+  dns_label         = "public"
+  route_table_id    = module.vcn.ig_route_id
   security_list_ids = [module.vcn.vcn_all_attributes.default_security_list_id]
+  
+  prohibit_public_ip_on_vnic = false
+}
+
+# Atualizar security list padrão para permitir SSH e HTTP
+resource "oci_core_default_security_list" "default" {
+  manage_default_resource_id = module.vcn.vcn_all_attributes.default_security_list_id
+  
+  display_name = "${var.project_name}-default-sl"
+
+  egress_security_rules {
+    destination = "0.0.0.0/0"
+    protocol    = "all"
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
 }
 
 module "compute" {
@@ -52,10 +86,9 @@ module "compute" {
   source_type = "image"
   source_ocid = var.instance_image_id
   
-  subnet_ocids = [module.subnet.subnet_id]
-  shape        = "VM.Standard.E2.1.Micro"
-  
+  subnet_ocids    = [oci_core_subnet.public.id]
+  shape           = "VM.Standard.E2.1.Micro"
   ssh_public_keys = var.ssh_public_key
-
-  depends_on = [module.subnet]
+  
+  assign_public_ip = true
 }
