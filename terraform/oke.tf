@@ -7,37 +7,49 @@
 #
 # Versões suportadas (2025): v1.32.1, v1.33.1, v1.34.1 (preview)
 # Docs: https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengaboutk8sversions.htm
+#
+# Subnets utilizadas (do networking.tf):
+# - oke_api: API Endpoint (público)
+# - oke_workers: Worker Nodes (privado)
+# - oke_lb: Load Balancers (público)
+# - oke_pods: Pods com VCN Native IP (privado)
 # ============================================================
 
 # # -----------------------------------------------------
-# # OKE Cluster
+# # OKE Cluster com VCN Native Pod Networking
 # # -----------------------------------------------------
 # resource "oci_containerengine_cluster" "main" {
 #   compartment_id     = var.compartment_id
 #   kubernetes_version = var.oke_kubernetes_version
 #   name               = "${var.project_name}-oke"
-#   vcn_id             = oci_core_vcn.main.id
+#   vcn_id             = oci_core_vcn.oke.id
+#   type               = "ENHANCED_CLUSTER"  # Necessário para VCN Native
 #
+#   # API Endpoint Configuration
 #   endpoint_config {
 #     is_public_ip_enabled = true
-#     subnet_id            = oci_core_subnet.public_1.id
+#     subnet_id            = oci_core_subnet.oke_api.id
 #   }
 #
+#   # Cluster Options
 #   options {
-#     service_lb_subnet_ids = [
-#       oci_core_subnet.public_1.id,
-#       oci_core_subnet.public_2.id
-#     ]
+#     # Subnet para Load Balancers criados pelo OKE
+#     service_lb_subnet_ids = [oci_core_subnet.oke_lb.id]
 #
 #     add_ons {
 #       is_kubernetes_dashboard_enabled = false
 #       is_tiller_enabled               = false
 #     }
 #
+#     # Kubernetes Network Config (para services)
 #     kubernetes_network_config {
-#       pods_cidr     = var.oke_pods_cidr
 #       services_cidr = var.oke_services_cidr
 #     }
+#   }
+#
+#   # VCN Native Pod Networking
+#   cluster_pod_network_options {
+#     cni_type = "OCI_VCN_IP_NATIVE"
 #   }
 #
 #   freeform_tags = {
@@ -48,7 +60,7 @@
 # }
 
 # # -----------------------------------------------------
-# # OKE Node Pool - Workers
+# # OKE Node Pool - Workers com VCN Native Pod Networking
 # # -----------------------------------------------------
 # resource "oci_containerengine_node_pool" "main" {
 #   cluster_id         = oci_containerengine_cluster.main.id
@@ -66,14 +78,18 @@
 #   node_config_details {
 #     size = var.oke_node_count
 #
+#     # Placement em subnet privada de workers
 #     placement_configs {
 #       availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
-#       subnet_id           = oci_core_subnet.private_1.id
+#       subnet_id           = oci_core_subnet.oke_workers.id
 #     }
 #
-#     placement_configs {
-#       availability_domain = data.oci_identity_availability_domains.ads.availability_domains[1].name
-#       subnet_id           = oci_core_subnet.private_2.id
+#     # VCN Native Pod Networking - Pods usam IPs da subnet de pods
+#     node_pool_pod_network_option_details {
+#       cni_type          = "OCI_VCN_IP_NATIVE"
+#       pod_subnet_ids    = [oci_core_subnet.oke_pods.id]
+#       max_pods_per_node = 31
+#       pod_nsg_ids       = []
 #     }
 #
 #     freeform_tags = {

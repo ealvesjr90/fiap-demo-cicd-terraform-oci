@@ -28,11 +28,12 @@ ingress_ports = [22, 80]
 # 🎯 LIVE: Descomentar as variáveis abaixo conforme for criando os recursos
 # ============================================================================
 
-# # --- Networking (subnets adicionais para OKE) ---
-# subnet_public_1_cidr  = "10.0.1.0/24"
-# subnet_public_2_cidr  = "10.0.2.0/24"
-# subnet_private_1_cidr = "10.0.10.0/24"
-# subnet_private_2_cidr = "10.0.11.0/24"
+# --- Networking - VCN dedicada para OKE ---
+oke_vcn_cidr           = "10.10.0.0/16"
+oke_subnet_api_cidr    = "10.10.0.0/28"      # API Endpoint (pequena, /28 = 16 IPs)
+oke_subnet_workers_cidr = "10.10.10.0/24"    # Worker Nodes (256 IPs)
+oke_subnet_lb_cidr     = "10.10.20.0/24"     # Load Balancers (256 IPs)
+oke_subnet_pods_cidr   = "10.10.128.0/18"    # Pods VCN Native (16k IPs)
 
 # # --- OKE (Oracle Kubernetes Engine) ---
 # oke_kubernetes_version = "v1.34.1"
@@ -41,8 +42,7 @@ ingress_ports = [22, 80]
 # oke_node_memory_gb     = 16
 # oke_node_count         = 2
 # oke_node_image_id      = "ocid1.image.oc1.sa-vinhedo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
-# oke_pods_cidr          = "10.244.0.0/16"
-# oke_services_cidr      = "10.96.0.0/16"
+# oke_services_cidr      = "10.96.0.0/16"  # CIDR para Services (ClusterIP)
 
 # # --- Databases (PostgreSQL - Autonomous) ---
 # db_is_free_tier    = true   # Free Tier: limite de 2 databases

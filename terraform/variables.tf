@@ -99,32 +99,42 @@ variable "ingress_ports" {
 # 🎯 LIVE: Descomentar as variáveis abaixo conforme necessário
 # ============================================================
 
-# # -----------------------------------------------------
-# # NETWORKING - Subnets adicionais
-# # -----------------------------------------------------
-# variable "subnet_public_1_cidr" {
-#   description = "CIDR da subnet pública 1"
-#   type        = string
-#   default     = "10.0.1.0/24"
-# }
+# -----------------------------------------------------
+# NETWORKING - VCN para OKE (separada da VCN do main.tf)
+# -----------------------------------------------------
+variable "oke_vcn_cidr" {
+  description = "CIDR da VCN dedicada para OKE"
+  type        = string
+  default     = "10.10.0.0/16"
+}
 
-# variable "subnet_public_2_cidr" {
-#   description = "CIDR da subnet pública 2"
-#   type        = string
-#   default     = "10.0.2.0/24"
-# }
+# Subnet para API Endpoint do OKE (pública ou privada)
+variable "oke_subnet_api_cidr" {
+  description = "CIDR da subnet para OKE API Endpoint"
+  type        = string
+  default     = "10.10.0.0/28"
+}
 
-# variable "subnet_private_1_cidr" {
-#   description = "CIDR da subnet privada 1"
-#   type        = string
-#   default     = "10.0.10.0/24"
-# }
+# Subnet para Worker Nodes (privada)
+variable "oke_subnet_workers_cidr" {
+  description = "CIDR da subnet para OKE Worker Nodes"
+  type        = string
+  default     = "10.10.10.0/24"
+}
 
-# variable "subnet_private_2_cidr" {
-#   description = "CIDR da subnet privada 2"
-#   type        = string
-#   default     = "10.0.11.0/24"
-# }
+# Subnet para Load Balancers (pública)
+variable "oke_subnet_lb_cidr" {
+  description = "CIDR da subnet para Load Balancers"
+  type        = string
+  default     = "10.10.20.0/24"
+}
+
+# Subnet para Pods - VCN Native Pod Networking (privada, grande)
+variable "oke_subnet_pods_cidr" {
+  description = "CIDR da subnet para Pods (VCN Native IP)"
+  type        = string
+  default     = "10.10.128.0/18"
+}
 
 # # -----------------------------------------------------
 # # OKE - Oracle Kubernetes Engine
@@ -164,17 +174,13 @@ variable "ingress_ports" {
 #   type        = string
 # }
 
-# variable "oke_pods_cidr" {
-#   description = "CIDR para pods do Kubernetes"
-#   type        = string
-#   default     = "10.244.0.0/16"
-# }
-
 # variable "oke_services_cidr" {
-#   description = "CIDR para services do Kubernetes"
+#   description = "CIDR para Kubernetes Services (ClusterIP)"
 #   type        = string
 #   default     = "10.96.0.0/16"
 # }
+# Nota: oke_pods_cidr não é necessário com VCN Native Pod Networking
+# Os pods usam IPs da subnet oke_subnet_pods_cidr
 
 # # -----------------------------------------------------
 # # DATABASES - PostgreSQL (Autonomous Database)
