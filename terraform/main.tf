@@ -11,7 +11,7 @@ terraform {
 
 module "vcn" {
   source  = "oracle-terraform-modules/vcn/oci"
-  version = "3.5.3"
+  version = "3.6.0"
 
   compartment_id = var.compartment_id
   region         = var.region
@@ -21,8 +21,15 @@ module "vcn" {
   vcn_cidrs     = ["10.0.0.0/16"]
   
   create_internet_gateway = true
-  create_nat_gateway      = true
-  create_service_gateway  = true
+  create_nat_gateway      = false
+  create_service_gateway  = false
+}
+
+data "oci_core_subnets" "vcn_subnets" {
+  compartment_id = var.compartment_id
+  vcn_id         = module.vcn.vcn_id
+
+  depends_on = [module.vcn]
 }
 
 module "compute" {
@@ -37,8 +44,10 @@ module "compute" {
   source_type = "image"
   source_ocid = var.instance_image_id
   
-  subnet_ocids = [module.vcn.subnet_ids["public"]]
+  subnet_ocids = [data.oci_core_subnets.vcn_subnets.subnets[0].id]
   shape        = "VM.Standard.E2.1.Micro"
   
   ssh_public_keys = var.ssh_public_key
+
+  depends_on = [module.vcn]
 }
