@@ -24,8 +24,8 @@ terraform {
     # Caminho do arquivo state dentro do bucket
     key = "fiap-demo/terraform.tfstate"
     
-    # Região do bucket (deve corresponder à região do bucket)
-    region = "sa-vinhedo-1"
+    # Região "fake" - não é usada realmente, mas é obrigatória
+    region = "us-east-1"
     
     # Endpoint S3-compatible do OCI Object Storage (novo formato)
     endpoints = {
@@ -37,6 +37,9 @@ terraform {
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     use_path_style              = true
+    
+    # Forçar uso de credenciais do environment (não buscar de ~/.aws/credentials)
+    shared_credentials_files = []
   }
 }
 
