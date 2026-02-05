@@ -190,26 +190,26 @@ variable "oke_subnet_db_cidr" {
 # Os pods usam IPs da subnet oke_subnet_pods_cidr
 
 
-# # -----------------------------------------------------
-# # REDIS - OCI Cache with Redis
-# # -----------------------------------------------------
-# variable "redis_node_count" {
-#   description = "Número de nodes do Redis cluster"
-#   type        = number
-#   default     = 1
-# }
+# -----------------------------------------------------
+# REDIS - OCI Cache with Redis
+# -----------------------------------------------------
+variable "redis_node_count" {
+  description = "Número de nodes do Redis cluster"
+  type        = number
+  default     = 1
+}
 
-# variable "redis_node_memory_gb" {
-#   description = "Memória em GB por node Redis"
-#   type        = number
-#   default     = 2
-# }
+variable "redis_node_memory_gb" {
+  description = "Memória em GB por node Redis"
+  type        = number
+  default     = 2
+}
 
-# variable "redis_version" {
-#   description = "Versão do Redis"
-#   type        = string
-#   default     = "REDIS_7_0"
-# }
+variable "redis_version" {
+  description = "Versão do Redis"
+  type        = string
+  default     = "REDIS_7_0"
+}
 
 # -----------------------------------------------------
 # NOSQL - OCI NoSQL Database (equivalente DynamoDB)

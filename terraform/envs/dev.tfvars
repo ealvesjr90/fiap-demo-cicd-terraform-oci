@@ -45,10 +45,10 @@ oke_subnet_db_cidr     = "10.10.30.0/24"     # Databases/outros (256 IPs)
 # oke_node_image_id      = "ocid1.image.oc1.sa-vinhedo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
 # oke_services_cidr      = "10.96.0.0/16"  # CIDR para Services (ClusterIP)
 
-# # --- Redis (OCI Cache) ---
-# redis_node_count     = 1
-# redis_node_memory_gb = 2
-# redis_version        = "REDIS_7_0"
+# --- Redis (OCI Cache) ---
+redis_node_count     = 1
+redis_node_memory_gb = 2
+redis_version        = "REDIS_7_0"
 
 # --- NoSQL (equivalente DynamoDB) ---
 nosql_read_units  = 50
