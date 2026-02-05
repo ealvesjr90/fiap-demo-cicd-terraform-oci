@@ -1,13 +1,3 @@
-# ============================================================
-# NOSQL - OCI NoSQL Database
-# ============================================================
-# Equivalente AWS: DynamoDB (ToggleMasterAnalytics)
-
-# 🎯 LIVE: Descomentar este arquivo para criar a tabela NoSQL
-
-# ✅ OCI NoSQL tem FREE TIER: 25GB storage, 133M read/write units
-# ============================================================
-
 # -----------------------------------------------------
 # NoSQL Table - ToggleMasterAnalytics
 # -----------------------------------------------------

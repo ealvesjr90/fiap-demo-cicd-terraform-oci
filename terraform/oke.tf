@@ -3,8 +3,6 @@
 # ============================================================
 # Equivalente AWS: EKS (Elastic Kubernetes Service)
 
-# 🎯 LIVE: Descomentar este arquivo para criar o cluster Kubernetes
-
 # Versões suportadas (2025): v1.32.1, v1.33.1, v1.34.1 (preview)
 # Docs: https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengaboutk8sversions.htm
 
@@ -100,8 +98,8 @@ resource "oci_containerengine_node_pool" "main" {
 
   node_source_details {
     source_type             = "IMAGE"
-    # Usar imagem OKE compatível com a versão do cluster
-    image_id                = data.oci_containerengine_node_pool_option.main.sources[0].image_id
+    # Usar imagem OKE compatível com o shape (Oracle Linux 8)
+    image_id                = local.oke_image_id
     boot_volume_size_in_gbs = 50
   }
 
@@ -119,9 +117,23 @@ resource "oci_containerengine_node_pool" "main" {
 }
 
 # -----------------------------------------------------
-# Data Source - OKE Node Pool Images
+# Data Source - Imagens OKE compatíveis
 # -----------------------------------------------------
-data "oci_containerengine_node_pool_option" "main" {
-  node_pool_option_id = "all"
-  compartment_id      = var.compartment_id
+data "oci_core_images" "oke_images" {
+  compartment_id           = var.compartment_id
+  operating_system         = "Oracle Linux"
+  operating_system_version = "8"
+  shape                    = var.oke_node_shape
+  sort_by                  = "TIMECREATED"
+  sort_order               = "DESC"
+
+  filter {
+    name   = "display_name"
+    values = ["^.*OKE.*$"]
+    regex  = true
+  }
+}
+
+locals {
+  oke_image_id = data.oci_core_images.oke_images.images[0].id
 }

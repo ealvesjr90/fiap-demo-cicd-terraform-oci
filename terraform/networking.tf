@@ -1,17 +1,3 @@
-# ============================================================
-# NETWORKING - VCN dedicada para OKE
-# ============================================================
-# Equivalente AWS: VPC, Subnets (Public/Private), IGW, NAT, Route Tables
-#
-# 🎯 LIVE: Esta VCN é separada da VCN do main.tf (demo simples)
-#
-# Subnets para OKE:
-# - API Endpoint: Onde o Kubernetes API server é exposto
-# - Workers: Onde os nodes do cluster rodam
-# - Load Balancer: Para serviços expostos externamente
-# - Pods: Para VCN Native Pod Networking (IPs da VCN para pods)
-# ============================================================
-
 # -----------------------------------------------------
 # VCN (Virtual Cloud Network) - Dedicada para OKE
 # -----------------------------------------------------

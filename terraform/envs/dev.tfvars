@@ -28,7 +28,7 @@ ingress_ports = [22, 80]
 # 🎯 LIVE: Descomentar as variáveis abaixo conforme for criando os recursos
 # ============================================================================
 
-# --- Networking - VCN dedicada para OKE ---
+# # --- Networking - VCN dedicada para OKE ---
 oke_vcn_cidr           = "10.10.0.0/16"
 oke_subnet_api_cidr    = "10.10.0.0/28"      # API Endpoint (pequena, /28 = 16 IPs)
 oke_subnet_workers_cidr = "10.10.10.0/24"    # Worker Nodes (256 IPs)

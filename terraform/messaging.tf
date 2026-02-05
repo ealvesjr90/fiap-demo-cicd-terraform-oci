@@ -1,13 +1,3 @@
-# ============================================================
-# MESSAGING - OCI Queue Service
-# ============================================================
-# Equivalente AWS: SQS (Simple Queue Service)
-
-# 🎯 LIVE: Descomentar este arquivo para criar a fila de mensagens
-
-# ✅ OCI Queue tem FREE TIER: 1M mensagens/mês
-# ============================================================
-
 # -----------------------------------------------------
 # OCI Queue - Fila Principal
 # -----------------------------------------------------
