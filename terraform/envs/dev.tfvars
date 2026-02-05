@@ -23,3 +23,45 @@ instance_count    = 3
 
 # --- Security ---
 ingress_ports = [22, 80]
+
+# ============================================================================
+# 🎯 LIVE: Descomentar as variáveis abaixo conforme for criando os recursos
+# ============================================================================
+
+# # --- Networking (subnets adicionais para OKE) ---
+# subnet_public_1_cidr  = "10.0.1.0/24"
+# subnet_public_2_cidr  = "10.0.2.0/24"
+# subnet_private_1_cidr = "10.0.10.0/24"
+# subnet_private_2_cidr = "10.0.11.0/24"
+
+# # --- OKE (Oracle Kubernetes Engine) ---
+# oke_kubernetes_version = "v1.34.1"
+# oke_node_shape         = "VM.Standard.E4.Flex"
+# oke_node_ocpus         = 2
+# oke_node_memory_gb     = 16
+# oke_node_count         = 2
+# oke_node_image_id      = "ocid1.image.oc1.sa-vinhedo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
+# oke_pods_cidr          = "10.244.0.0/16"
+# oke_services_cidr      = "10.96.0.0/16"
+
+# # --- Databases (PostgreSQL - Autonomous) ---
+# db_is_free_tier    = true   # Free Tier: limite de 2 databases
+# db_cpu_core_count  = 1
+# db_storage_size_tb = 1
+# # db_admin_password -> Definir via GitHub Secret: OCI_DB_ADMIN_PASSWORD
+
+# # --- Redis (OCI Cache) ---
+# redis_node_count     = 1
+# redis_node_memory_gb = 2
+# redis_version        = "REDIS_7_0"
+
+# # --- NoSQL (equivalente DynamoDB) ---
+# nosql_read_units  = 50
+# nosql_write_units = 50
+# nosql_storage_gb  = 25  # Free Tier: 25GB
+
+# # --- Queue (equivalente SQS) ---
+# queue_retention_seconds  = 345600  # 4 dias
+# queue_timeout_seconds    = 30
+# queue_visibility_seconds = 30
+# queue_dead_letter_count  = 5
