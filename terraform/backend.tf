@@ -1,59 +1,40 @@
 # ============================================================================
-# TERRAFORM REMOTE STATE - OCI Object Storage (S3-Compatible)
+# TERRAFORM REMOTE STATE - OCI Object Storage (Backend Nativo)
 # ============================================================================
-
-# Por padrão, o backend está DESABILITADO (local state).
-# Para habilitar remote state no OCI Object Storage:
-
+#
+# Backend OCI nativo: Usa as MESMAS credenciais do provider OCI
+# - Não precisa de Customer Secret Keys
+# - Não precisa de credenciais AWS
+# - Usa ~/.oci/config automaticamente
+#
+# Configuração:
 # 1. Criar bucket no OCI Object Storage
-# 2. Obter Object Storage Namespace
-# 3. Criar Customer Secret Keys (credenciais S3-compatible)
-# 4. Configurar ~/.aws/credentials com as Customer Secret Keys
-# 5. Descomentar o bloco abaixo
-# 6. Atualizar valores: namespace, bucket, region
-# 7. Executar: terraform init -migrate-state
-
-# Documentação completa: Ver BACKEND-OCI.md
+# 2. Obter Object Storage Namespace (veja BACKEND-OCI.md)
+# 3. Atualizar valores abaixo: namespace, bucket, region
+# 4. Terraform init vai usar credenciais do provider automaticamente
+#
+# Documentação: https://developer.hashicorp.com/terraform/language/backend/oci
 # ============================================================================
 
 terraform {
-  backend "s3" {
-    # Nome do bucket criado no OCI Object Storage
-    bucket = "terraform-state-bucket"
+  backend "oci" {
+    # Obrigatórios
+    bucket    = "terraform-state-bucket"
+    namespace = "ax7pefxfpuix"
+    key       = "fiap-demo/terraform.tfstate"
     
-    # Caminho do arquivo state dentro do bucket
-    key = "fiap-demo/terraform.tfstate"
-    
-    # Região "fake" - não é usada realmente, mas é obrigatória
-    region = "us-east-1"
-    
-    # Endpoint S3-compatible do OCI Object Storage (novo formato)
-    endpoints = {
-      s3 = "https://ax7pefxfpuix.compat.objectstorage.sa-vinhedo-1.oraclecloud.com"
-    }
-    
-    # Configurações obrigatórias para OCI S3-compatible API
-    skip_region_validation      = true
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    use_path_style              = true
-    
-    # Forçar uso de credenciais do environment (não buscar de ~/.aws/credentials)
-    shared_credentials_files = []
+    # Credenciais OCI (mesmas do provider)
+    region = "sa-vinhedo-1"
   }
 }
 
 # ============================================================================
-# CREDENCIAIS (NÃO commitar no Git)
+# CREDENCIAIS (Mesmas do Provider OCI)
 # ============================================================================
-
-# O Terraform busca credenciais em ~/.aws/credentials no formato:
-
-# [default]
-# aws_access_key_id = <ACCESS_KEY da Customer Secret Key>
-# aws_secret_access_key = <SECRET_KEY da Customer Secret Key>
-
-# Para GitHub Actions, configure os secrets:
-# - AWS_ACCESS_KEY_ID
-# - AWS_SECRET_ACCESS_KEY
+#
+# O backend OCI usa as MESMAS credenciais configuradas para o provider:
+# - Localmente: ~/.oci/config
+# - GitHub Actions: Configurado no step "Configure OCI Credentials"
+#
+# Não precisa de secrets adicionais!
 # ============================================================================

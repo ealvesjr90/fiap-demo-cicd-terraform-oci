@@ -1,6 +1,6 @@
 # 🗄️ Configuração do Backend OCI Object Storage
 
-Este guia explica como configurar o **Terraform Remote State** usando OCI Object Storage com interface S3-compatible.
+Este guia explica como configurar o **Terraform Remote State** usando **Backend OCI Nativo** (não S3-compatible).
 
 ## 📋 Por que usar Remote State?
 
@@ -16,13 +16,19 @@ Este guia explica como configurar o **Terraform Remote State** usando OCI Object
 - ⚠️ Requer Customer Secret Keys
 - ⚠️ Mais complexo para demos/aulas
 
-## 🎯 Sim, precisa do modo S3-compatible!
+## 🎯 Backend OCI Nativo Disponível!
 
-O Terraform **não tem backend nativo OCI**. Por isso, usamos a **API S3-compatible** do OCI Object Storage.
+O Terraform **TEM backend nativo OCI** desde versões recentes! Muito mais simples que S3-compatible:
+- ✅ Usa as **mesmas credenciais** do provider OCI
+- ✅ **Não precisa** de Customer Secret Keys
+- ✅ **Não precisa** de credenciais AWS
+- ✅ Configuração muito mais simples
+
+**Documentação oficial:** https://developer.hashicorp.com/terraform/language/backend/oci
 
 ---
 
-## 🔧 Passo a Passo: Configurar Backend OCI
+## 🔧 Passo a Passo: Backend OCI Nativo (Simples!)
 
 ### **Passo 1: Criar Bucket no OCI**
 
@@ -51,57 +57,17 @@ O Terraform **não tem backend nativo OCI**. Por isso, usamos a **API S3-compati
 oci os ns get --query 'data' --raw-output
 ```
 
-### **Passo 3: Criar Customer Secret Keys**
-
-As Customer Secret Keys são credenciais no formato AWS (Access Key + Secret Key) para acessar o Object Storage via API S3-compatible.
-
-1. **Console OCI:** Perfil → **User Settings**
-2. **Menu lateral:** `Customer Secret Keys`
-3. **Clique em:** `Generate Secret Key`
-4. **Name:** `terraform-backend`
-5. **Clique em:** `Generate Secret Key`
-
-⚠️ **IMPORTANTE:** A tela mostrará:
-- **Access Key:** `abc123def456...` (visível sempre)
-- **Secret Key:** `xyz789ghi012...` (**só aparece UMA vez!**)
-
-**COPIE AMBOS IMEDIATAMENTE!**
-
-### **Passo 4: Configurar Credenciais AWS Localmente**
-
-O Terraform usa credenciais AWS padrão para acessar o backend S3-compatible:
-
-```bash
-# Criar diretório AWS
-mkdir -p ~/.aws
-
-# Criar arquivo de credenciais
-cat > ~/.aws/credentials << EOF
-[default]
-aws_access_key_id = SEU_ACCESS_KEY_AQUI
-aws_secret_access_key = SEU_SECRET_KEY_AQUI
-EOF
-
-# Proteger o arquivo
-chmod 600 ~/.aws/credentials
-```
-
-### **Passo 5: Atualizar backend.tf**
+### **Passo 3: Atualizar backend.tf**
 
 Edite o arquivo `terraform/backend.tf`:
 
 ```hcl
 terraform {
-  backend "s3" {
-    bucket   = "terraform-state-bucket"
-    key      = "fiap-demo/terraform.tfstate"
-    region   = "sa-vinhedo-1"
-    endpoint = "https://SEU_NAMESPACE.compat.objectstorage.sa-vinhedo-1.oraclecloud.com"
-    
-    skip_region_validation      = true
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    force_path_style            = true
+  backend "oci" {
+    bucket    = "terraform-state-bucket"
+    namespace = "SEU_NAMESPACE"
+    key       = "fiap-demo/terraform.tfstate"
+    region    = "sa-vinhedo-1"
   }
 }
 ```
@@ -111,7 +77,9 @@ terraform {
 - `sa-vinhedo-1` → Sua região OCI
 - `terraform-state-bucket` → Nome do seu bucket
 
-### **Passo 6: Inicializar Backend**
+✅ **Pronto!** O backend usa automaticamente as credenciais do `~/.oci/config`
+
+### **Passo 4: Inicializar Backend**
 
 ```bash
 cd terraform
@@ -123,32 +91,13 @@ terraform init
 # Type 'yes' to copy state to remote backend
 ```
 
-### **Passo 7: Adicionar Secrets no GitHub Actions**
+### **Passo 5: GitHub Actions (Nenhuma configuração extra!)**
 
-Para a pipeline funcionar com backend remoto, adicione estes secrets:
+✅ **Não precisa de secrets adicionais!**
 
-| Secret | Valor |
-|--------|-------|
-| `AWS_ACCESS_KEY_ID` | Access Key da Customer Secret Key |
-| `AWS_SECRET_ACCESS_KEY` | Secret Key da Customer Secret Key |
+O backend OCI usa as **mesmas credenciais OCI** já configuradas no step "Configure OCI Credentials" dos workflows.
 
-### **Passo 8: Atualizar Workflows**
-
-Adicione as variáveis de ambiente em **todos os workflows** (.github/workflows/*.yml):
-
-```yaml
-- name: Configure AWS Credentials for Backend
-  run: |
-    mkdir -p ~/.aws
-    cat > ~/.aws/credentials << EOF
-    [default]
-    aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-    aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    EOF
-    chmod 600 ~/.aws/credentials
-```
-
-Adicione este step **ANTES** do `Terraform Init` em cada workflow.
+As credenciais do `~/.oci/config` criadas pela pipeline são automaticamente usadas pelo backend.
 
 ---
 
@@ -156,28 +105,23 @@ Adicione este step **ANTES** do `Terraform Init` em cada workflow.
 
 ```hcl
 terraform {
-  backend "s3" {
-    # Nome do bucket criado no OCI
+  backend "oci" {
+    # Nome do bucket criado no OCI Object Storage
     bucket = "terraform-state-bucket"
     
-    # Caminho dentro do bucket (organize por projeto/ambiente)
+    # Object Storage Namespace
+    namespace = "axqhg4xyzabc"
+    
+    # Caminho do state dentro do bucket
     key = "fiap-demo/terraform.tfstate"
     
-    # Região do bucket
+    # Região OCI
     region = "sa-vinhedo-1"
-    
-    # Endpoint S3-compatible do OCI
-    # Formato: https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
-    endpoint = "https://axqhg4xyzabc.compat.objectstorage.sa-vinhedo-1.oraclecloud.com"
-    
-    # Configurações necessárias para OCI
-    skip_region_validation      = true
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    force_path_style            = true
   }
 }
 ```
+
+✅ **Simples assim!** Apenas 4 parâmetros necessários.
 
 ---
 

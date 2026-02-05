@@ -61,7 +61,6 @@ Este projeto usa **módulos oficiais da Oracle** e recursos nativos:
 ```
 📁 fiap-demo-cicd-terraform-oci/
 ├── 📁 .github/workflows/
-│   ├── terraform-plan.yml      # Pipeline de validação (PRs)
 │   ├── terraform-apply.yml     # Pipeline de deploy (manual)
 │   └── terraform-destroy.yml   # Pipeline de limpeza (manual)
 ├── 📁 terraform/
@@ -101,6 +100,8 @@ Configure os seguintes secrets no GitHub (Settings → Secrets and variables →
 | `OCI_PROJECT_NAME` | Nome do projeto | `fiap-demo` |
 | `OCI_ENVIRONMENT` | Ambiente (dev/staging/prod) | `dev` |
 | `OCI_INSTANCE_COUNT` | Número de instâncias | `2` |
+
+⚠️ **Nota sobre Backend OCI:** O backend usa as **mesmas credenciais OCI** do provider. Não precisa de secrets AWS adicionais!
 
 ### Como obter as credenciais OCI:
 
@@ -171,18 +172,7 @@ cat ~/.ssh/oci_demo_key.pub
 
 ## 🔄 Pipelines e Fluxo de Trabalho
 
-### Pipeline 1: Terraform Plan (Automático em PRs)
-
-**Trigger:** Pull Request para `main`
-
-**Executa:**
-1. `terraform fmt -check` - Valida formatação
-2. `terraform init` - Inicializa providers e módulos
-3. `terraform validate` - Valida sintaxe
-4. `terraform plan` - Gera plano de execução
-5. Comenta o plano no PR automaticamente
-
-### Pipeline 2: Terraform Apply (Manual)
+### Pipeline 1: Terraform Apply (Manual)
 
 **Trigger:** Execução manual via GitHub Actions
 
@@ -194,7 +184,7 @@ cat ~/.ssh/oci_demo_key.pub
 5. Gera outputs em JSON
 6. Upload dos outputs como artifact
 
-### Pipeline 3: Terraform Destroy (Manual)
+### Pipeline 2: Terraform Destroy (Manual)
 
 **Trigger:** Execução manual via GitHub Actions
 
@@ -203,24 +193,17 @@ cat ~/.ssh/oci_demo_key.pub
 2. **Pausa para aprovação manual** (environment: production)
 3. `terraform destroy -auto-approve`
 
-## 🎯 Fluxo de Trabalho GitOps
+## 🎯 Fluxo de Trabalho Simplificado
 
-### 1. Desenvolvimento e Validação
+### 1. Editar e Commit
 ```bash
-# Criar branch de feature
-git checkout -b feature/nova-funcionalidade
-
 # Fazer alterações no código Terraform
 vim terraform/main.tf
 
-# Commit e push
+# Commit direto na main
 git add .
 git commit -m "feat: Adiciona nova funcionalidade"
-git push origin feature/nova-funcionalidade
-
-# Abrir PR no GitHub
-# ✅ Pipeline terraform-plan executa automaticamente
-# ✅ Comentário com o plan aparece no PR
+git push origin main
 ```
 
 ### 2. Deploy Manual
@@ -318,17 +301,16 @@ terraform destroy
 Recursos **Always Free** utilizados:
 - ✅ 2x Compute VM.Standard.E2.1.Micro (1 OCPU, 1GB RAM)
 - ✅ 1x VCN com gateways
-- ✅ 10GB Object Storage (para remote state)
+- ✅ Object Storage (para Terraform remote state - backend OCI nativo)
 
 ## 🛡️ Segurança e Best Practices
 
 ### ✅ Implementado:
-- Módulos oficiais e versionados
+- Módulos oficiais da Oracle (VCN + Compute)
 - Credenciais em GitHub Secrets
-- Remote state (Object Storage)
-- Aprovação manual para produção
-- Validação de código (fmt, validate)
-- Tags em todos os recursos
+- Remote state (Backend OCI nativo)
+- Aprovação manual para produção (environment: production)
+- Fluxo simplificado (sem PRs para facilitar demo)
 
 ### ⚠️ Importante:
 - Nunca commitar credenciais no código
