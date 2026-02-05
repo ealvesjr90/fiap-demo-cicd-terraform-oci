@@ -140,6 +140,16 @@ resource "oci_core_security_list" "oke_api" {
     }
   }
 
+  # OKE Control Plane (node bootstrap)
+  ingress_security_rules {
+    protocol = "6"
+    source   = var.oke_vcn_cidr
+    tcp_options {
+      min = 12250
+      max = 12250
+    }
+  }
+
   # ICMP
   ingress_security_rules {
     protocol = "1"
