@@ -21,8 +21,8 @@ resource "oci_redis_redis_cluster" "main" {
   node_memory_in_gbs = var.redis_node_memory_gb
   software_version   = var.redis_version
 
-  # Rede
-  subnet_id = oci_core_subnet.private_1.id
+  # Rede - usando subnet de databases da VCN OKE
+  subnet_id = oci_core_subnet.oke_db.id
 
   freeform_tags = {
     "Environment" = var.environment
