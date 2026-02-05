@@ -55,8 +55,8 @@ nosql_read_units  = 50
 nosql_write_units = 50
 nosql_storage_gb  = 25  # Free Tier: 25GB
 
-# # --- Queue (equivalente SQS) ---
-# queue_retention_seconds  = 345600  # 4 dias
-# queue_timeout_seconds    = 30
-# queue_visibility_seconds = 30
-# queue_dead_letter_count  = 5
+# --- Queue (equivalente SQS) ---
+queue_retention_seconds  = 345600  # 4 dias
+queue_timeout_seconds    = 30
+queue_visibility_seconds = 30
+queue_dead_letter_count  = 5

@@ -232,29 +232,29 @@ variable "nosql_storage_gb" {
   default     = 25
 }
 
-# # -----------------------------------------------------
-# # QUEUE - OCI Queue Service (equivalente SQS)
-# # -----------------------------------------------------
-# variable "queue_retention_seconds" {
-#   description = "Tempo de retenção das mensagens em segundos"
-#   type        = number
-#   default     = 345600 # 4 dias
-# }
+# -----------------------------------------------------
+# QUEUE - OCI Queue Service (equivalente SQS)
+# -----------------------------------------------------
+variable "queue_retention_seconds" {
+  description = "Tempo de retenção das mensagens em segundos"
+  type        = number
+  default     = 345600 # 4 dias
+}
 
-# variable "queue_timeout_seconds" {
-#   description = "Timeout para processamento da mensagem"
-#   type        = number
-#   default     = 30
-# }
+variable "queue_timeout_seconds" {
+  description = "Timeout para processamento da mensagem"
+  type        = number
+  default     = 30
+}
 
-# variable "queue_visibility_seconds" {
-#   description = "Tempo de visibilidade da mensagem"
-#   type        = number
-#   default     = 30
-# }
+variable "queue_visibility_seconds" {
+  description = "Tempo de visibilidade da mensagem"
+  type        = number
+  default     = 30
+}
 
-# variable "queue_dead_letter_count" {
-#   description = "Número de tentativas antes de enviar para DLQ"
-#   type        = number
-#   default     = 5
-# }
+variable "queue_dead_letter_count" {
+  description = "Número de tentativas antes de enviar para DLQ"
+  type        = number
+  default     = 5
+}
