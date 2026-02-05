@@ -56,10 +56,10 @@ oke_subnet_db_cidr     = "10.10.30.0/24"     # Databases/outros (256 IPs)
 # redis_node_memory_gb = 2
 # redis_version        = "REDIS_7_0"
 
-# # --- NoSQL (equivalente DynamoDB) ---
-# nosql_read_units  = 50
-# nosql_write_units = 50
-# nosql_storage_gb  = 25  # Free Tier: 25GB
+# --- NoSQL (equivalente DynamoDB) ---
+nosql_read_units  = 50
+nosql_write_units = 50
+nosql_storage_gb  = 25  # Free Tier: 25GB
 
 # # --- Queue (equivalente SQS) ---
 # queue_retention_seconds  = 345600  # 4 dias

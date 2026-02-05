@@ -237,26 +237,26 @@ variable "oke_subnet_db_cidr" {
 #   default     = "REDIS_7_0"
 # }
 
-# # -----------------------------------------------------
-# # NOSQL - OCI NoSQL Database (equivalente DynamoDB)
-# # -----------------------------------------------------
-# variable "nosql_read_units" {
-#   description = "Unidades de leitura máximas"
-#   type        = number
-#   default     = 50
-# }
+# -----------------------------------------------------
+# NOSQL - OCI NoSQL Database (equivalente DynamoDB)
+# -----------------------------------------------------
+variable "nosql_read_units" {
+  description = "Unidades de leitura máximas"
+  type        = number
+  default     = 50
+}
 
-# variable "nosql_write_units" {
-#   description = "Unidades de escrita máximas"
-#   type        = number
-#   default     = 50
-# }
+variable "nosql_write_units" {
+  description = "Unidades de escrita máximas"
+  type        = number
+  default     = 50
+}
 
-# variable "nosql_storage_gb" {
-#   description = "Storage máximo em GB"
-#   type        = number
-#   default     = 25
-# }
+variable "nosql_storage_gb" {
+  description = "Storage máximo em GB"
+  type        = number
+  default     = 25
+}
 
 # # -----------------------------------------------------
 # # QUEUE - OCI Queue Service (equivalente SQS)
