@@ -20,7 +20,7 @@ resource "oci_nosql_table" "toggle_master_analytics" {
       feature_name STRING,
       enabled BOOLEAN,
       user_id STRING,
-      timestamp TIMESTAMP,
+      timestamp TIMESTAMP(3),
       metadata JSON,
       PRIMARY KEY (id)
     )

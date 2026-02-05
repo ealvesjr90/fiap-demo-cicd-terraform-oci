@@ -189,32 +189,6 @@ variable "oke_subnet_db_cidr" {
 # Nota: oke_pods_cidr não é necessário com VCN Native Pod Networking
 # Os pods usam IPs da subnet oke_subnet_pods_cidr
 
-# # -----------------------------------------------------
-# # DATABASES - PostgreSQL (Autonomous Database)
-# # -----------------------------------------------------
-# variable "db_is_free_tier" {
-#   description = "Usar Free Tier para o banco (limite: 2 databases)"
-#   type        = bool
-#   default     = true
-# }
-
-# variable "db_cpu_core_count" {
-#   description = "Número de CPUs do database"
-#   type        = number
-#   default     = 1
-# }
-
-# variable "db_storage_size_tb" {
-#   description = "Tamanho do storage em TB"
-#   type        = number
-#   default     = 1
-# }
-
-# variable "db_admin_password" {
-#   description = "Senha do admin do database (min 12 chars, 1 upper, 1 lower, 1 number)"
-#   type        = string
-#   sensitive   = true
-# }
 
 # # -----------------------------------------------------
 # # REDIS - OCI Cache with Redis

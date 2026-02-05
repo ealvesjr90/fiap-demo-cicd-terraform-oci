@@ -69,27 +69,6 @@ output "instance_public_ips" {
 # }
 
 # # -----------------------------------------------------
-# # DATABASES - PostgreSQL
-# # -----------------------------------------------------
-# output "postgres_1_connection_string" {
-#   description = "Connection string do PostgreSQL 1"
-#   value       = oci_database_autonomous_database.postgres_1.connection_strings[0].profiles[0].value
-#   sensitive   = true
-# }
-
-# output "postgres_2_connection_string" {
-#   description = "Connection string do PostgreSQL 2"
-#   value       = oci_database_autonomous_database.postgres_2.connection_strings[0].profiles[0].value
-#   sensitive   = true
-# }
-
-# output "postgres_3_connection_string" {
-#   description = "Connection string do PostgreSQL 3"
-#   value       = oci_database_autonomous_database.postgres_3.connection_strings[0].profiles[0].value
-#   sensitive   = true
-# }
-
-# # -----------------------------------------------------
 # # REDIS
 # # -----------------------------------------------------
 # output "redis_endpoint" {

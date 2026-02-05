@@ -45,12 +45,6 @@ oke_subnet_db_cidr     = "10.10.30.0/24"     # Databases/outros (256 IPs)
 # oke_node_image_id      = "ocid1.image.oc1.sa-vinhedo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
 # oke_services_cidr      = "10.96.0.0/16"  # CIDR para Services (ClusterIP)
 
-# # --- Databases (PostgreSQL - Autonomous) ---
-# db_is_free_tier    = true   # Free Tier: limite de 2 databases
-# db_cpu_core_count  = 1
-# db_storage_size_tb = 1
-# # db_admin_password -> Definir via GitHub Secret: OCI_DB_ADMIN_PASSWORD
-
 # # --- Redis (OCI Cache) ---
 # redis_node_count     = 1
 # redis_node_memory_gb = 2
