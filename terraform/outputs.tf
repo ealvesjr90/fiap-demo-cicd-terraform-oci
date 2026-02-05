@@ -3,9 +3,9 @@ output "vcn_id" {
   value       = module.vcn.vcn_id
 }
 
-output "subnet_ids" {
-  description = "OCIDs das subnets criadas"
-  value       = [for subnet in data.oci_core_subnets.vcn_subnets.subnets : subnet.id]
+output "subnet_id" {
+  description = "OCID da subnet pública"
+  value       = module.subnet.subnet_id
 }
 
 output "instance_ids" {

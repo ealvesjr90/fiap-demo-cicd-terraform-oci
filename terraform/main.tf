@@ -25,11 +25,19 @@ module "vcn" {
   create_service_gateway  = false
 }
 
-data "oci_core_subnets" "vcn_subnets" {
+module "subnet" {
+  source  = "oracle-terraform-modules/vcn/oci//modules/subnet"
+  version = "3.6.0"
+
   compartment_id = var.compartment_id
   vcn_id         = module.vcn.vcn_id
-
-  depends_on = [module.vcn]
+  
+  cidr_block     = "10.0.1.0/24"
+  display_name   = "${var.project_name}-public-subnet"
+  dns_label      = "public"
+  route_table_id = module.vcn.ig_route_id
+  
+  security_list_ids = [module.vcn.vcn_all_attributes.default_security_list_id]
 }
 
 module "compute" {
@@ -44,10 +52,10 @@ module "compute" {
   source_type = "image"
   source_ocid = var.instance_image_id
   
-  subnet_ocids = [data.oci_core_subnets.vcn_subnets.subnets[0].id]
+  subnet_ocids = [module.subnet.subnet_id]
   shape        = "VM.Standard.E2.1.Micro"
   
   ssh_public_keys = var.ssh_public_key
 
-  depends_on = [module.vcn]
+  depends_on = [module.subnet]
 }
