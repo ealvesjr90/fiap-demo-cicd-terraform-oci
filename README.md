@@ -265,7 +265,9 @@ terraform destroy -var-file=envs/dev.tfvars
 ## 🎓 Informações da Aula
 
 **Professor:** José Neto
-**Curso:** Arquitetura de Sistemas - FIAP
+
+**Curso:** DevOps e Arquitetura Cloud - FIAP
+
 **Tema:** Infrastructure as Code com Terraform + CI/CD
 
 ---
