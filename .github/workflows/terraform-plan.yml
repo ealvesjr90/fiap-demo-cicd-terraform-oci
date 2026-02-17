@@ -42,7 +42,7 @@ jobs:
           
           chmod 600 ~/.oci/config
 
-      # 🔥 NOVO STEP PARA DEBUG DO FINGERPRINT
+      # 🔥 NOVO STEP PARA DEBUG DO FINGERPRIN
       - name: Debug OCI Fingerprint
         run: |
           echo "Fingerprint da chave usada no runner:"
