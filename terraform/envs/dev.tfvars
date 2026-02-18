@@ -11,15 +11,16 @@
 # --- Projeto ---
 project_name = "fiap-demo-oci"
 environment  = "dev"
-
+# --- Compartment ---
+compartment_id = "ocid1.compartment.oc1..aaaaaaaanehxovyxoaobjbxqhbgdcubarphs5xuptwok4gbcpepxov75obpq"
 # --- Rede ---
 vcn_cidr    = "10.0.0.0/16"
 subnet_cidr = "10.0.1.0/24"
 
 # --- Compute ---
-instance_image_id = "ocid1.image.oc1.sa-vinhedo-1.aaaaaaaa3isvzt4wyrlth6etis4ekiwaxpqjznsknrk3jbwka5uonkuvbewa"
-instance_shape    = "VM.Standard.E4.Flex"
-instance_count    = 2
+instance_image_id = "ocid1.instance.oc1.sa-saopaulo-1.antxeljryge6yiacu25nj37w62sfbppn77qsmzg2jb2mzc2ngc4ssf6k5qba"
+instance_shape    = "VM.Standard.E2.1.Micro"
+instance_count    = 1
 
 # --- Security ---
 ingress_ports = [22, 80]
