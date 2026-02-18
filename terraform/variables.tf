@@ -1,26 +1,3 @@
-variable "tenancy_ocid" {
-  description = "OCID do Tenancy OCI"
-  type        = string
-  sensitive   = true
-}
-
-variable "user_ocid" {
-  description = "OCID do Usuário OCI"
-  type        = string
-  sensitive   = true
-}
-
-variable "fingerprint" {
-  description = "Fingerprint da API Key"
-  type        = string
-  sensitive   = true
-}
-
-variable "region" {
-  description = "Região OCI"
-  type        = string
-  default     = "us-ashburn-1"
-}
 
 variable "compartment_id" {
   description = "OCID do Compartment"
