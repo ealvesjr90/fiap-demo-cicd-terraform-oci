@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: 'latest'
+  TF_VERSION: '1.6.6'
   WORKING_DIR: './terraform'
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 -d > ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/oci_api_key.pem
           
-          cat > ~/.oci/config << 'EOF'
+          cat > ~/.oci/config << EOF
           [DEFAULT]
           user=${{ secrets.OCI_USER_OCID }}
           fingerprint=${{ secrets.OCI_FINGERPRINT }}
@@ -47,13 +47,13 @@ jobs:
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIR }}
         env:
-          TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
-          TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
-          TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
-          TF_VAR_region: ${{ secrets.OCI_REGION }}
+         # TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+         # TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
+         # TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
+         # TF_VAR_region: ${{ secrets.OCI_REGION }}
           TF_VAR_compartment_id: ${{ secrets.OCI_COMPARTMENT_ID }}
           TF_VAR_ssh_public_key: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-        run: terraform plan -var-file=envs/dev.tfvars -out=tfplan
+        run: terraform plan -var-file=envs/dev.tfvars -out=tfplan -lock-timeout=300s
 
       - name: Terraform Apply
         working-directory: ${{ env.WORKING_DIR }}
