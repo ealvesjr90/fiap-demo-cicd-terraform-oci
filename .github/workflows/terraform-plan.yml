@@ -63,7 +63,7 @@ jobs:
         env:
           TF_VAR_compartment_id: ${{ secrets.OCI_COMPARTMENT_ID }}
           TF_VAR_ssh_public_key: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-        run: terraform plan -var-file=envs/dev.tfvars
+        run: terraform plan -var-file=envs/dev.tfvars -input=false
 
       - name: Notify Success
         if: success()
