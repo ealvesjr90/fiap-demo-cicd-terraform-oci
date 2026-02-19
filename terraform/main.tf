@@ -9,7 +9,7 @@ module "vcn" {
   version = "3.6.0"
 
   compartment_id = var.compartment_id
-  
+  region         = var.region
   
   vcn_name      = "${var.project_name}-vcn"
   vcn_dns_label = replace("${var.project_name}vcn", "-", "")
