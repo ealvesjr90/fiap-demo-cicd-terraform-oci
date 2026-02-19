@@ -27,19 +27,11 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket = "terraform-state-bucket"
-    key    = "fiap-demo/terraform.tfstate"
-    region = "sa-saopaulo-1"
-
-    endpoints = {
-      s3 = "https://grqkmwwimskh.compat.objectstorage.sa-saopaulo-1.oraclecloud.com"
-    }
-
-    skip_credentials_validation = true
-    skip_region_validation      = true
-    skip_metadata_api_check     = true
-    force_path_style            = true
+  backend "oci" {
+    bucket    = "terraform-state-bucket"
+    namespace = "grqkmwwimskh"
+    key       = "fiap-demo/terraform.tfstate"
+    region    = "sa-saopaulo-1"
   }
 }
 
