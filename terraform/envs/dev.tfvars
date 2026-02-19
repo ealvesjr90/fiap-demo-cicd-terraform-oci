@@ -18,7 +18,7 @@ vcn_cidr    = "10.0.0.0/16"
 subnet_cidr = "10.0.1.0/24"
 
 # --- Compute ---
-instance_image_id = "ocid1.coreservicesworkrequest.oc1.sa-saopaulo-1.abtxeljrocjhd5ehpqrtrywwuvruurmh7sml72kek54qohfhapgzugtx2xba"
+instance_image_id = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaaknaozajhsexgzwmcpthd6xa2kx4r2ofaqbfjk2mfrozvca7lbz3a"
 instance_shape    = "VM.Standard.E2.1"
 instance_count    = 1
 
