@@ -57,21 +57,21 @@ resource "oci_core_default_security_list" "default" {
   }
 }
 
-module "compute" {
-  source  = "oracle-terraform-modules/compute-instance/oci"
-  version = "2.4.1"
+#module "compute" {
+ # source  = "oracle-terraform-modules/compute-instance/oci"
+#  version = "2.4.1"
 
-  compartment_ocid      = var.compartment_id
-  instance_count        = var.instance_count
-  ad_number             = 1
-  instance_display_name = "${var.project_name}-instance"
+ # compartment_ocid      = var.compartment_id
+ # instance_count        = var.instance_count
+ # ad_number             = 1
+ # instance_display_name = "${var.project_name}-instance"
   
-  source_type = "image"
-  source_ocid = var.instance_image_id
+ # source_type = "image"
+ # source_ocid = var.instance_image_id
   
-  subnet_ocids    = [oci_core_subnet.public.id]
-  shape           = var.instance_shape
-  ssh_public_keys = var.ssh_public_key
+ # subnet_ocids    = [oci_core_subnet.public.id]
+ # shape           = var.instance_shape
+ # ssh_public_keys = var.ssh_public_key
   
-  assign_public_ip = true
-}
+ # assign_public_ip = true
+#}
