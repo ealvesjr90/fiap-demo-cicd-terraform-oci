@@ -72,16 +72,16 @@ variable "subnet_cidr" {
   default     = "10.0.1.0/24"
 }
 
-#variable "instance_shape" {
- # description = "Shape da instância (Free Tier: VM.Standard.E2.1.Micro)"
- # type        = string
- # default     = "VM.Standard.E2.1.Micro"
-#}
+variable "instance_shape" {
+ description = "Shape da instância (Free Tier: VM.Standard.E2.1.Micro)"
+ type        = string
+ default     = "VM.Standard.E2.1.Micro"
+}
 
-#variable "instance_image_id" {
-#  description = "OCID da imagem Oracle Linux"
-#  type        = string
-#}
+variable "instance_image_id" {
+ description = "OCID da imagem Oracle Linux"
+ type        = string
+}
 
 variable "ssh_public_key" {
   description = "Chave SSH pública"
