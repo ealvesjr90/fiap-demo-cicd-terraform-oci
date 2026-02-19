@@ -59,7 +59,7 @@ resource "oci_core_default_security_list" "default" {
 
 module "compute" {
   source  = "oracle-terraform-modules/compute-instance/oci"
-  version = "2.4.0"
+  version = "2.4.1"
 
   compartment_ocid      = var.compartment_id
   instance_count        = var.instance_count
