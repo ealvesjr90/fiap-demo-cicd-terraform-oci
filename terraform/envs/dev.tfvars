@@ -20,7 +20,7 @@ subnet_cidr = "10.0.1.0/24"
 # --- Compute ---
 instance_image_id = "ocid1.instance.oc1.sa-saopaulo-1.antxeljryge6yiacu25nj37w62sfbppn77qsmzg2jb2mzc2ngc4ssf6k5qba"
 instance_shape    = "VM.Standard.E2.1.Micro"
-instance_count    = 1
+instance_count    = 2
 
 # --- Security ---
 ingress_ports = [22, 80]
