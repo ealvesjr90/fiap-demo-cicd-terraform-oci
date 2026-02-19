@@ -52,7 +52,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR }}
-        run: terraform init -reconfigure
+        run: terraform init
 
       - name: Terraform Validate
         working-directory: ${{ env.WORKING_DIR }}

@@ -39,6 +39,11 @@ jobs:
           
           sed -i 's/^[[:space:]]*//' ~/.oci/config
           chmod 600 ~/.oci/config
+      - name: Debug - show backend file
+run: |
+    echo "===== BACKEND FILE ====="
+    cat ./terraform/backend.tf || echo "backend.tf not found"
+    echo "========================"
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR }}
