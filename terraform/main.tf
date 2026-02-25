@@ -143,7 +143,7 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
 resource "oci_nosql_table" "main" {
   compartment_id = var.compartment_id
-  name           = "${var.project_name}-nosql"
+  name = "fiap_demo_table"
 
   ddl_statement = <<EOF
 CREATE TABLE ${var.project_name}_nosql (
