@@ -1,42 +1,75 @@
-# Data source para obter availability domains
+# ============================================================
+# DATA SOURCE - Availability Domains
+# ============================================================
 data "oci_identity_availability_domains" "ads" {
   compartment_id = var.compartment_id
 }
 
-# Módulo VCN com subnet
+# ============================================================
+# VCN
+# ============================================================
 module "vcn" {
   source  = "oracle-terraform-modules/vcn/oci"
   version = "3.6.0"
 
   compartment_id = var.compartment_id
   region         = var.region
-  
+
   vcn_name      = "${var.project_name}-vcn"
   vcn_dns_label = replace("${var.project_name}vcn", "-", "")
   vcn_cidrs     = [var.vcn_cidr]
-  
+
   create_internet_gateway = true
-  create_nat_gateway      = false
-  create_service_gateway  = false
+  create_nat_gateway      = true
+  create_service_gateway  = true
 }
 
-# Criar subnet manualmente usando outputs do módulo VCN
+# ============================================================
+# SUBNETS
+# ============================================================
+
+# Subnet pública (LoadBalancer / API Endpoint)
 resource "oci_core_subnet" "public" {
-  compartment_id    = var.compartment_id
-  vcn_id            = module.vcn.vcn_id
-  cidr_block        = var.subnet_cidr
-  display_name      = "${var.project_name}-public-subnet"
-  dns_label         = "public"
-  route_table_id    = module.vcn.ig_route_id
-  security_list_ids = [module.vcn.vcn_all_attributes.default_security_list_id]
-  
+  compartment_id = var.compartment_id
+  vcn_id         = module.vcn.vcn_id
+  cidr_block     = var.subnet_cidr
+  display_name   = "${var.project_name}-public-subnet"
+  dns_label      = "public"
+  route_table_id = module.vcn.ig_route_id
+
   prohibit_public_ip_on_vnic = false
 }
 
-# Atualizar security list padrão para permitir SSH e HTTP
+# Subnet privada - Workers OKE
+resource "oci_core_subnet" "private_workers" {
+  compartment_id = var.compartment_id
+  vcn_id         = module.vcn.vcn_id
+  cidr_block     = var.oke_subnet_workers_cidr
+  display_name   = "${var.project_name}-workers-subnet"
+  dns_label      = "workers"
+  route_table_id = module.vcn.nat_route_id
+
+  prohibit_public_ip_on_vnic = true
+}
+
+# Subnet privada - Databases
+resource "oci_core_subnet" "private_db" {
+  compartment_id = var.compartment_id
+  vcn_id         = module.vcn.vcn_id
+  cidr_block     = var.oke_subnet_db_cidr
+  display_name   = "${var.project_name}-db-subnet"
+  dns_label      = "db"
+  route_table_id = module.vcn.nat_route_id
+
+  prohibit_public_ip_on_vnic = true
+}
+
+# ============================================================
+# SECURITY LIST
+# ============================================================
 resource "oci_core_default_security_list" "default" {
   manage_default_resource_id = module.vcn.vcn_all_attributes.default_security_list_id
-  
+
   display_name = "${var.project_name}-default-sl"
 
   egress_security_rules {
@@ -57,21 +90,89 @@ resource "oci_core_default_security_list" "default" {
   }
 }
 
-module "compute" {
-  source  = "oracle-terraform-modules/compute-instance/oci"
-  version = "2.4.0"
+# ============================================================
+# OKE - Oracle Kubernetes Engine
+# ============================================================
 
-  compartment_ocid      = var.compartment_id
-  instance_count        = var.instance_count
-  ad_number             = 1
-  instance_display_name = "${var.project_name}-instance"
-  
-  source_type = "image"
-  source_ocid = var.instance_image_id
-  
-  subnet_ocids    = [oci_core_subnet.public.id]
-  shape           = var.instance_shape
-  ssh_public_keys = var.ssh_public_key
-  
-  assign_public_ip = true
+resource "oci_containerengine_cluster" "oke" {
+  compartment_id     = var.compartment_id
+  name               = "${var.project_name}-oke"
+  kubernetes_version = var.oke_kubernetes_version
+  vcn_id             = module.vcn.vcn_id
+
+  endpoint_config {
+    is_public_ip_enabled = true
+    subnet_id            = oci_core_subnet.public.id
+  }
+
+  options {
+    service_lb_subnet_ids = [oci_core_subnet.public.id]
+  }
+}
+
+resource "oci_containerengine_node_pool" "node_pool" {
+  compartment_id     = var.compartment_id
+  cluster_id         = oci_containerengine_cluster.oke.id
+  kubernetes_version = var.oke_kubernetes_version
+  name               = "${var.project_name}-nodepool"
+
+  node_shape = var.oke_node_shape
+
+  node_config_details {
+    size = var.oke_node_count
+
+    placement_configs {
+      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
+      subnet_id           = oci_core_subnet.private_workers.id
+    }
+  } 
+  initial_node_labels {
+      key   = "environment"
+      value = var.environment
+    }
+
+  node_shape_config {
+    ocpus         = var.oke_node_ocpus
+    memory_in_gbs = var.oke_node_memory_gb
+  }
+}
+
+# ============================================================
+# NOSQL (DynamoDB equivalent)
+# ============================================================
+
+resource "oci_nosql_table" "main" {
+  compartment_id = var.compartment_id
+  name           = "${var.project_name}-nosql"
+
+  ddl_statement = <<EOF
+CREATE TABLE ${var.project_name}_nosql (
+  id STRING,
+  created_at TIMESTAMP,
+  data STRING,
+  PRIMARY KEY(id)
+)
+EOF
+
+  table_limits {
+    max_read_units      = var.nosql_read_units
+    max_write_units     = var.nosql_write_units
+    max_storage_in_gbs  = var.nosql_storage_gb
+  }
+}
+
+# ============================================================
+# QUEUE (SQS equivalent)
+# ============================================================
+
+resource "oci_queue_queue" "dlq" {
+  compartment_id = var.compartment_id
+  display_name   = "${var.project_name}-dlq"
+}
+
+resource "oci_queue_queue" "main" {
+  compartment_id = var.compartment_id
+  display_name   = "${var.project_name}-queue"
+
+  retention_in_seconds = var.queue_retention_seconds
 }
