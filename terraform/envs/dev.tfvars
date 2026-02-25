@@ -43,7 +43,7 @@ ingress_ports = [22, 80]
  oke_node_ocpus         = 2
  oke_node_memory_gb     = 16
  oke_node_count         = 2
- oke_node_image_id      = "ocid1.image.oc1.sa-sa-saopaulo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
+ oke_node_image_id      = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaa3lpk4c7vr3ezrtcfi3d7iqagmax2xxsbtg66vnc4bwiatdslqtuq"
  oke_services_cidr      = "10.96.0.0/16"  # CIDR para Services (ClusterIP)
 
 # # --- NoSQL (equivalente DynamoDB) ---

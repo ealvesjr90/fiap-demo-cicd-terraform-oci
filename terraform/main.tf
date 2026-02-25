@@ -143,16 +143,14 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
 resource "oci_nosql_table" "main" {
   compartment_id = var.compartment_id
-  name = "fiap_demo_table"
+  name           = replace(var.project_name, "-", "_") 
 
-  ddl_statement = <<EOF
-CREATE TABLE ${var.project_name}_nosql (
+  ddl_statement = <<EOT
+CREATE TABLE ${replace(var.project_name, "-", "_")}_table (
   id STRING,
-  created_at TIMESTAMP,
-  data STRING,
-  PRIMARY KEY(id)
+  PRIMARY KEY (id)
 )
-EOF
+EOT
 
   table_limits {
     max_read_units      = var.nosql_read_units
