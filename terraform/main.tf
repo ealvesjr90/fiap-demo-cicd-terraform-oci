@@ -132,10 +132,6 @@ resource "oci_containerengine_node_pool" "node_pool" {
     }
   }
 
-  node_source_details {
-    source_type = "IMAGE"
-    image_id    = var.oke_node_image_id
-  }
 
   initial_node_labels {
     key   = "environment"
