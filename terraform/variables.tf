@@ -176,10 +176,10 @@ variable "ingress_ports" {
    default     = 2
  }
 
- #variable "oke_node_image_id" {
- #  description = "OCID da imagem para os nodes OKE"
- #  type        = string
- #}
+ variable "oke_node_image_id" {
+   description = "OCID da imagem para os nodes OKE"
+   type        = string
+ }
 
  variable "oke_services_cidr" {
    description = "CIDR para Kubernetes Services (ClusterIP)"
