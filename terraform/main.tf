@@ -111,12 +111,17 @@ resource "oci_containerengine_cluster" "oke" {
 }
 
 resource "oci_containerengine_node_pool" "node_pool" {
-  compartment_id     = var.compartment_id
-  cluster_id         = oci_containerengine_cluster.oke.id
-  kubernetes_version = var.oke_kubernetes_version
-  name               = "${var.project_name}-nodepool"
+  compartment_id = var.compartment_id
+  cluster_id     = oci_containerengine_cluster.oke.id
+  name           = "${var.project_name}-nodepool"
 
-  node_shape = var.oke_node_shape
+  kubernetes_version = var.oke_kubernetes_version
+  node_shape         = var.oke_node_shape
+
+  node_shape_config {
+    ocpus         = var.oke_node_ocpus
+    memory_in_gbs = var.oke_node_memory_gb
+  }
 
   node_config_details {
     size = var.oke_node_count
@@ -125,25 +130,26 @@ resource "oci_containerengine_node_pool" "node_pool" {
       availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
       subnet_id           = oci_core_subnet.private_workers.id
     }
-  } 
-  initial_node_labels {
-      key   = "environment"
-      value = var.environment
-    }
+  }
 
-  node_shape_config {
-    ocpus         = var.oke_node_ocpus
-    memory_in_gbs = var.oke_node_memory_gb
+  node_source_details {
+    source_type = "IMAGE"
+    image_id    = var.oke_node_image_id
+  }
+
+  initial_node_labels {
+    key   = "environment"
+    value = var.environment
   }
 }
-
 # ============================================================
 # NOSQL (DynamoDB equivalent)
 # ============================================================
 
 resource "oci_nosql_table" "main" {
   compartment_id = var.compartment_id
-  name           = replace(var.project_name, "-", "_") 
+
+  name = "${replace(var.project_name, "-", "_")}_table"
 
   ddl_statement = <<EOT
 CREATE TABLE ${replace(var.project_name, "-", "_")}_table (
@@ -153,9 +159,9 @@ CREATE TABLE ${replace(var.project_name, "-", "_")}_table (
 EOT
 
   table_limits {
-    max_read_units      = var.nosql_read_units
-    max_write_units     = var.nosql_write_units
-    max_storage_in_gbs  = var.nosql_storage_gb
+    max_read_units     = var.nosql_read_units
+    max_write_units    = var.nosql_write_units
+    max_storage_in_gbs = var.nosql_storage_gb
   }
 }
 

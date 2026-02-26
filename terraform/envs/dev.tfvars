@@ -38,7 +38,7 @@ ingress_ports = [22, 80]
  oke_subnet_db_cidr     = "10.0.5.0/24"     # Databases/outros (256 IPs)
 
 # # --- OKE (Oracle Kubernetes Engine) ---
- oke_kubernetes_version = "v1.34.1"
+ oke_kubernetes_version = "v1.29.1"
  oke_node_shape         = "VM.Standard.E3.Flex"
  oke_node_ocpus         = 2
  oke_node_memory_gb     = 16
