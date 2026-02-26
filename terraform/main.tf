@@ -1,8 +1,3 @@
-data "oci_containerengine_node_pool_options" "oke_options" {
-  compartment_id = var.compartment_id
-}
-
-
 
 # ============================================================
 # DATA SOURCE - Availability Domains
