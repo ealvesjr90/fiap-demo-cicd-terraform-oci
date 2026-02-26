@@ -133,19 +133,14 @@ resource "oci_containerengine_node_pool" "node_pool" {
     }
   }
 
-  node_source_details {
-    source_type = "IMAGE"
-    image_id    = data.oci_containerengine_node_pool_option.oke_options.sources[0].image_id
+  initial_node_labels {
+    key   = "environment"
+    value = var.environment
   }
 
   node_shape_config {
     ocpus         = var.oke_node_ocpus
     memory_in_gbs = var.oke_node_memory_gb
-  }
-
-  initial_node_labels {
-    key   = "environment"
-    value = var.environment
   }
 }
 # ============================================================
