@@ -17,19 +17,3 @@ resource "oci_core_subnet" "db" {
   cidr_block     = "10.0.5.0/24"
   display_name   = "db-subnet"
 }
-
-variable "compartment_id" {
-  type = string
-}
-
-output "vcn_id" {
-  value = oci_core_vcn.main.id
-}
-
-output "workers_subnet_id" {
-  value = oci_core_subnet.workers.id
-}
-
-output "db_subnet_id" {
-  value = oci_core_subnet.db.id
-}
