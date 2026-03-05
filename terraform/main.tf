@@ -8,7 +8,9 @@ module "ocir" {
   compartment_id = var.compartment_id
 }
 
-/*module "nosql" {
-  source         = "./modules/nosql"
+module "nosql" {
+  source = "./modules/nosql"
+
   compartment_id = var.compartment_id
-}*/
+  table_name     = "fiap-hackaton-table"
+}
