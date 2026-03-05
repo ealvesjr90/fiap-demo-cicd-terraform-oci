@@ -1,16 +1,19 @@
-resource "oci_core_vcn" "vcn" {
+resource "oci_core_vcn" "main" {
+  compartment_id = var.compartment_id
   cidr_block     = "10.0.0.0/16"
-  compartment_id = var.compartment_id
-  display_name   = "techchallenge-vcn"
+  display_name   = "demo-vcn"
 }
 
-resource "oci_core_subnet" "public_subnet" {
+resource "oci_core_subnet" "workers" {
   compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.vcn.id
-  cidr_block     = "10.0.1.0/24"
-  display_name   = "public-subnet"
+  vcn_id         = oci_core_vcn.main.id
+  cidr_block     = "10.0.3.0/24"
+  display_name   = "workers-subnet"
 }
 
-output "vcn_id" {
-  value = oci_core_vcn.vcn.id
+resource "oci_core_subnet" "db" {
+  compartment_id = var.compartment_id
+  vcn_id         = oci_core_vcn.main.id
+  cidr_block     = "10.0.5.0/24"
+  display_name   = "db-subnet"
 }
