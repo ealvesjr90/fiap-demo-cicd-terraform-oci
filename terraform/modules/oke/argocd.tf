@@ -18,6 +18,11 @@ EOF
   ]
 }
 
+resource "time_sleep" "wait_for_argocd_crds" {
+  depends_on      = [helm_release.argocd]
+  create_duration = "90s"
+}
+
 resource "kubectl_manifest" "argocd_apps" {
   for_each = toset([
     "auth-service",
@@ -50,5 +55,5 @@ spec:
       - CreateNamespace=true
 EOF
 
-  depends_on = [helm_release.argocd]
+  depends_on = [time_sleep.wait_for_argocd_crds]
 }
