@@ -23,32 +23,9 @@ OCI_QUEUE_ID         = os.getenv("OCI_QUEUE_ID")
 OCI_NOSQL_TABLE      = os.getenv("OCI_NOSQL_TABLE", "ToggleMasterAnalytics")
 OCI_COMPARTMENT_ID   = os.getenv("OCI_COMPARTMENT_ID")
 
-if not all([OCI_QUEUE_ENDPOINT, OCI_QUEUE_ID, OCI_COMPARTMENT_ID]):
-    log.critical("Erro: OCI_QUEUE_ENDPOINT, OCI_QUEUE_ID e OCI_COMPARTMENT_ID devem ser definidos.")
-    sys.exit(1)
-
-# --- Clientes OCI ---
-# Tenta Resource Principal (OKE), senão usa config padrão (local)
-try:
-    signer = oci.auth.signers.get_resource_principals_signer()
-    oci_config = {}
-    log.info("Autenticação via Resource Principal (OKE).")
-except Exception as e:
-    log.warning(f"Resource Principal não disponível, usando config padrão: {e}")
-    oci_config = oci.config.from_file()
-    signer = None
-
-try:
-    if signer:
-        queue_client = oci.queue.QueueClient(config={}, signer=signer, service_endpoint=OCI_QUEUE_ENDPOINT)
-        nosql_client = oci.nosql.NosqlClient(config={}, signer=signer)
-    else:
-        queue_client = oci.queue.QueueClient(config=oci_config, service_endpoint=OCI_QUEUE_ENDPOINT)
-        nosql_client = oci.nosql.NosqlClient(config=oci_config)
-    log.info("Clientes OCI Queue e NoSQL inicializados.")
-except Exception as e:
-    log.critical(f"Erro ao inicializar clientes OCI: {e}")
-    sys.exit(1)
+# These are initialized by init_app()
+queue_client = None
+nosql_client = None
 
 
 # --- Queue Worker ---
@@ -136,8 +113,44 @@ def start_worker():
     worker_thread = threading.Thread(target=queue_worker_loop, daemon=True)
     worker_thread.start()
 
+
+def init_app():
+    """Inicializa clientes OCI e inicia o worker. Chamado ao iniciar o servidor."""
+    global queue_client, nosql_client
+
+    if not all([OCI_QUEUE_ENDPOINT, OCI_QUEUE_ID, OCI_COMPARTMENT_ID]):
+        log.critical("Erro: OCI_QUEUE_ENDPOINT, OCI_QUEUE_ID e OCI_COMPARTMENT_ID devem ser definidos.")
+        sys.exit(1)
+
+    # --- Clientes OCI ---
+    # Tenta Resource Principal (OKE), senão usa config padrão (local)
+    try:
+        signer = oci.auth.signers.get_resource_principals_signer()
+        oci_config = {}
+        log.info("Autenticação via Resource Principal (OKE).")
+    except Exception as e:
+        log.warning(f"Resource Principal não disponível, usando config padrão: {e}")
+        oci_config = oci.config.from_file()
+        signer = None
+
+    try:
+        if signer:
+            queue_client = oci.queue.QueueClient(config={}, signer=signer, service_endpoint=OCI_QUEUE_ENDPOINT)
+            nosql_client = oci.nosql.NosqlClient(config={}, signer=signer)
+        else:
+            queue_client = oci.queue.QueueClient(config=oci_config, service_endpoint=OCI_QUEUE_ENDPOINT)
+            nosql_client = oci.nosql.NosqlClient(config=oci_config)
+        log.info("Clientes OCI Queue e NoSQL inicializados.")
+    except Exception as e:
+        log.critical(f"Erro ao inicializar clientes OCI: {e}")
+        sys.exit(1)
+
+    start_worker()
+
+
 # Inicia o worker em background (funciona com 'flask run' e 'gunicorn')
-start_worker()
+if os.getenv("TESTING") != "1":
+    init_app()
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8005))
