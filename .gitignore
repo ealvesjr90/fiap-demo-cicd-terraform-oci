@@ -27,7 +27,9 @@ override.tf.json
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-plan.txt
-outputs.json
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
