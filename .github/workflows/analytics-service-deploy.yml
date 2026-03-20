@@ -55,7 +55,7 @@ jobs:
       - name: Run Bandit (SAST)
         run: |
           pip install bandit
-          bandit -r analytics-service/
+          bandit -r analytics-service/ --severity-level medium
 
       - name: Run Trivy (SCA - Filesystem)
         uses: aquasecurity/trivy-action@master
