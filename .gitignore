@@ -31,3 +31,13 @@ Thumbs.db
 *.log
 plan.txt
 outputs.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.env

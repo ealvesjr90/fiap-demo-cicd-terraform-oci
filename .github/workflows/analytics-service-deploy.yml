@@ -40,6 +40,11 @@ jobs:
           cd analytics-service
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
+      - name: Unit Test
+        run: |
+          cd analytics-service
+          pytest
+
   security-scan:
     name: "Security Scan (SAST & SCA)"
     runs-on: ubuntu-latest
@@ -50,7 +55,7 @@ jobs:
       - name: Run Bandit (SAST)
         run: |
           pip install bandit
-          bandit -r analytics-service/
+          bandit -r analytics-service/ --exclude analytics-service/test_app.py,analytics-service/test_*.py
 
       - name: Run Trivy (SCA - Filesystem)
         uses: aquasecurity/trivy-action@master
