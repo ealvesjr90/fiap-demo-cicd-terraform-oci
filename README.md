@@ -66,7 +66,22 @@ Projeto demonstrativo de Infrastructure as Code usando Terraform com pipeline CI
 ├── 📁 .github/workflows/
 │   ├── terraform-plan.yml        # Pipeline Plan (automático no push)
 │   ├── terraform-apply.yml       # Pipeline Apply (manual + aprovação)
-│   └── terraform-destroy.yml     # Pipeline Destroy (manual + aprovação)
+│   ├── terraform-destroy.yml     # Pipeline Destroy (manual + aprovação)
+│   ├── analytics-service-deploy.yml
+│   ├── auth-service-deploy.yml
+│   ├── evaluation-service-deploy.yml
+│   ├── flag-service-deploy.yml
+│   ├── targeting-service-deploy.yml
+│   └── argocd-sync-check.yml     # Verificação de sync ArgoCD (reusável)
+├── 📁 argocd/
+│   ├── project.yaml              # AppProject "togglemaster"
+│   ├── app-of-apps.yaml          # Root Application (App-of-Apps)
+│   └── 📁 applications/
+│       ├── analytics-service.yaml
+│       ├── auth-service.yaml
+│       ├── evaluation-service.yaml
+│       ├── flag-service.yaml
+│       └── targeting-service.yaml
 ├── 📁 terraform/
 │   ├── backend.tf                # Backend OCI nativo + providers
 │   ├── provider.tf               # Provider OCI
@@ -83,30 +98,36 @@ Projeto demonstrativo de Infrastructure as Code usando Terraform com pipeline CI
 ├── .gitignore
 ├── README.md
 ├── HANDS-ON.md
+├── ARGOCD.md
 └── BACKEND-OCI.md
 ```
 
-## 🔄 Pipelines (3 separadas)
+## 🔄 Pipelines (3 Terraform + 5 Serviços + 1 ArgoCD)
 
-### Pipeline 1: Terraform Plan (Automático)
+### Terraform Pipelines
 
-**Trigger:** Push na `main` (alterações em `terraform/**`) + manual
+| Pipeline | Trigger | Ação |
+|----------|---------|------|
+| **Terraform Plan** | Push em `terraform/**` (auto) | `init` → `validate` → `plan` |
+| **Terraform Apply** | Manual | `init` → `plan` → ⏸️ Aprovação → `apply` |
+| **Terraform Destroy** | Manual | `init` → ⏸️ Aprovação → `destroy` |
 
-**Executa:** `init` → `validate` → `plan`
+### Serviços CI/CD (por serviço)
 
-### Pipeline 2: Terraform Apply (Manual + Aprovação)
+Cada serviço possui uma pipeline que executa:
 
-**Trigger:** Manual via GitHub Actions
+```
+Lint/Test → Security Scan → Build & Push Image → Update GitOps → ArgoCD Sync Check
+```
 
-**Executa:** `init` → `plan` → ⏸️ **Aprovação (environment: dev)** → `apply` → `output`
+### Pipeline ArgoCD Sync Check (Reusável)
 
-### Pipeline 3: Terraform Destroy (Manual + Aprovação)
+**Workflow:** `.github/workflows/argocd-sync-check.yml`
 
-**Trigger:** Manual via GitHub Actions
+Chamado automaticamente por cada serviço após o commit GitOps.
+Verifica se o ArgoCD sincronizou e o deployment está `Healthy`.
 
-**Executa:** `init` → ⏸️ **Aprovação (environment: dev)** → `destroy`
-
-### Fluxo Visual
+### Fluxo Visual (Infra)
 
 ```
 1️⃣  git push origin main
@@ -132,9 +153,19 @@ Projeto demonstrativo de Infrastructure as Code usando Terraform com pipeline CI
 3️⃣  Actions → Terraform Destroy → Run workflow (quando necessário)
 ```
 
+### Fluxo Visual (Serviços + ArgoCD)
+
+```
+git push → Lint/Test → Sec Scan → Build → Push → GitOps → ArgoCD Sync Check
+                                                     ↓              ↓
+                                              deployment.yaml  ✅ Synced & Healthy
+```
+
+> **Guia ArgoCD:** veja [ARGOCD.md](ARGOCD.md) para instruções completas de instalação e teste.
+
 ## 🔐 Configuração
 
-### GitHub Secrets (7 - apenas credenciais)
+### GitHub Secrets (9 - credenciais OCI + ArgoCD)
 
 | Secret | Descrição |
 |--------|-----------|
@@ -145,6 +176,8 @@ Projeto demonstrativo de Infrastructure as Code usando Terraform com pipeline CI
 | `OCI_REGION` | Região OCI (ex: `sa-vinhedo-1`) |
 | `OCI_COMPARTMENT_ID` | OCID do compartment |
 | `OCI_SSH_PUBLIC_KEY` | Chave SSH pública |
+| `ARGOCD_SERVER` | IP/hostname do servidor ArgoCD (sem `https://`) |
+| `ARGOCD_AUTH_TOKEN` | Token de autenticação do ArgoCD |
 
 ### GitHub Environment
 

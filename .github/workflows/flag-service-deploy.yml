@@ -132,3 +132,15 @@ jobs:
           git add flag-service/k8s/deployment.yaml
           git commit -m "chore(gitops): update ${{ env.SERVICE_NAME }} image to ${{ github.sha }}"
           git push origin main
+
+  argocd-sync-check:
+    name: "ArgoCD Sync Check"
+    needs: update-gitops
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions: {}
+    uses: ./.github/workflows/argocd-sync-check.yml
+    with:
+      app_name: flag-service
+    secrets:
+      ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+      ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
