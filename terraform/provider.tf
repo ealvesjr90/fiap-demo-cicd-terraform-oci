@@ -61,14 +61,12 @@ provider "kubectl" {
 }
 
 provider "helm" {
-  kubernetes {
-    host                   = local.kubeconfig.clusters[0].cluster.server
-    cluster_ca_certificate = base64decode(local.kubeconfig.clusters[0].cluster.certificate-authority-data)
+  host                   = local.kubeconfig.clusters[0].cluster.server
+  cluster_ca_certificate = base64decode(local.kubeconfig.clusters[0].cluster.certificate-authority-data)
 
-    exec {
-      api_version = "client.authentication.k8s.io/v1"
-      command     = "oci"
-      args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id]
-    }
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "oci"
+    args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id]
   }
 }
