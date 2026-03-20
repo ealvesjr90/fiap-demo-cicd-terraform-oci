@@ -1,0 +1,81 @@
+name: "ArgoCD - Sync Check"
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: "ArgoCD application name to check"
+        required: true
+        type: string
+    secrets:
+      ARGOCD_SERVER:
+        required: true
+      ARGOCD_AUTH_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: "ArgoCD application name (leave empty to check all)"
+        required: false
+        default: ""
+
+jobs:
+  argocd-sync-check:
+    name: "Verify ArgoCD Sync"
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /usr/local/bin/argocd \
+            https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /usr/local/bin/argocd
+
+      - name: Login to ArgoCD
+        run: |
+          argocd login "${{ secrets.ARGOCD_SERVER }}" \
+            --auth-token "${{ secrets.ARGOCD_AUTH_TOKEN }}" \
+            --grpc-web \
+            --insecure
+
+      - name: Wait for ArgoCD Sync (specific app)
+        if: ${{ inputs.app_name != '' }}
+        run: |
+          echo "⏳ Waiting for ArgoCD to sync application: ${{ inputs.app_name }}"
+          argocd app wait "${{ inputs.app_name }}" \
+            --sync \
+            --health \
+            --timeout 300
+          echo "✅ Application ${{ inputs.app_name }} is synced and healthy"
+
+      - name: Check All Applications
+        if: ${{ inputs.app_name == '' }}
+        run: |
+          APPS=(
+            analytics-service
+            auth-service
+            evaluation-service
+            flag-service
+            targeting-service
+          )
+          FAILED=0
+          for APP in "${APPS[@]}"; do
+            echo "⏳ Checking application: ${APP}"
+            if argocd app wait "${APP}" --sync --health --timeout 300; then
+              echo "✅ ${APP}: Synced and Healthy"
+            else
+              echo "❌ ${APP}: Sync or health check failed"
+              FAILED=1
+            fi
+          done
+          if [ "${FAILED}" -eq 1 ]; then
+            echo "One or more applications failed to sync or become healthy."
+            exit 1
+          fi
+          echo "✅ All applications are synced and healthy"
+
+      - name: Show Application Status
+        if: always()
+        run: |
+          echo "=== ArgoCD Application Status ==="
+          argocd app list

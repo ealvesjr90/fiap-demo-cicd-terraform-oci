@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: targeting-service
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: togglemaster
+  source:
+    repoURL: https://github.com/ealvesjr90/fiap-demo-cicd-terraform-oci
+    targetRevision: main
+    path: targeting-service/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: togglemaster
+  revisionHistoryLimit: 3
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

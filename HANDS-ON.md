@@ -89,7 +89,7 @@ git clone https://github.com/SEU-USUARIO/fiap-demo-cicd-terraform-oci.git
 cd fiap-demo-cicd-terraform-oci
 ```
 
-### Passo 2: Configurar GitHub Secrets (7 secrets)
+### Passo 2: Configurar GitHub Secrets (9 secrets)
 
 **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
@@ -102,8 +102,10 @@ cd fiap-demo-cicd-terraform-oci
 | `OCI_REGION` | `sa-vinhedo-1` |
 | `OCI_COMPARTMENT_ID` | `ocid1.compartment.oc1..aaaaaaaa...` |
 | `OCI_SSH_PUBLIC_KEY` | `ssh-rsa AAAAB3NzaC1yc2EAAAA...` |
+| `ARGOCD_SERVER` | IP do servidor ArgoCD (configurar após PARTE 7) |
+| `ARGOCD_AUTH_TOKEN` | Token ArgoCD (configurar após PARTE 7) |
 
-**Total: 7 secrets**
+**Total: 9 secrets** (os 2 últimos são configurados após instalar o ArgoCD)
 
 ### Passo 3: Criar Environment "dev"
 
@@ -223,7 +225,75 @@ git push origin main
 
 ---
 
-## 🧹 PARTE 7: Destruir Recursos (IMPORTANTE!)
+## 🔄 PARTE 7: Testar com ArgoCD (GitOps) (10 min)
+
+### O que é ArgoCD?
+
+O ArgoCD é um operador GitOps que monitora este repositório e sincroniza automaticamente
+os manifestos Kubernetes do diretório `k8s/` de cada serviço com o cluster OKE.
+
+### Passo 1: Instalar o ArgoCD no cluster
+
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+```
+
+### Passo 2: Expor o servidor
+
+```bash
+kubectl patch svc argocd-server -n argocd \
+  -p '{"spec": {"type": "LoadBalancer"}}'
+# Aguardar EXTERNAL-IP
+kubectl get svc argocd-server -n argocd
+```
+
+### Passo 3: Fazer login
+
+```bash
+# Obter senha inicial
+PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d)
+
+argocd login <EXTERNAL-IP> --username admin --password "${PASS}" --insecure
+```
+
+### Passo 4: Aplicar os manifestos ArgoCD
+
+```bash
+kubectl apply -f argocd/project.yaml     # Cria o AppProject
+kubectl apply -f argocd/app-of-apps.yaml # Cria todas as Applications
+```
+
+### Passo 5: Verificar o status
+
+```bash
+argocd app list
+```
+
+Saída esperada: todos os serviços com `STATUS=Synced` e `HEALTH=Healthy`.
+
+### Passo 6: Testar um deploy automático
+
+```bash
+# Faça qualquer mudança em um serviço e push para main
+git push origin main
+
+# O GitHub Actions irá:
+# 1. Executar lint, testes e security scan
+# 2. Build e push da imagem
+# 3. Atualizar o deployment.yaml com a nova tag
+# 4. Aguardar o ArgoCD sincronizar e verificar o status
+```
+
+> **Guia completo:** veja [ARGOCD.md](ARGOCD.md) para instruções detalhadas,
+> troubleshooting e como configurar os secrets `ARGOCD_SERVER` e `ARGOCD_AUTH_TOKEN`.
+
+---
+
+## 🧹 PARTE 8: Destruir Recursos (IMPORTANTE!)
 
 ### Via GitHub Actions:
 

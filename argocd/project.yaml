@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: togglemaster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "ToggleMaster - Feature Flag Platform"
+  sourceRepos:
+    - "https://github.com/ealvesjr90/fiap-demo-cicd-terraform-oci"
+  destinations:
+    - namespace: togglemaster
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "apps"
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: Secret
+    - group: "batch"
+      kind: Job
+    - group: "networking.k8s.io"
+      kind: Ingress
+  orphanedResources:
+    warn: true
