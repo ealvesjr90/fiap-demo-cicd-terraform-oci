@@ -16,6 +16,8 @@ server:
     - --insecure
 EOF
   ]
+
+  depends_on = [module.oke]
 }
 
 resource "kubectl_manifest" "argocd_apps" {
