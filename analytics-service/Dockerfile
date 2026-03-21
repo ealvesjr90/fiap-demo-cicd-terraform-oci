@@ -20,9 +20,9 @@ COPY --chown=appuser:appuser . .
 
 USER appuser
 
-EXPOSE 8080
+EXPOSE 8005
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f http://localhost:8005/health || exit 1
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8005", "app:app"]
