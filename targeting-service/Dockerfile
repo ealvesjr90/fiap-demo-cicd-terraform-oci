@@ -5,11 +5,12 @@ RUN useradd -m -u 10001 appuser
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY targeting-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy files with ownership assigned to the non-root user
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser shared/ ./shared/
+COPY --chown=appuser:appuser targeting-service/ .
 
 # Switch to the non-root user
 USER appuser
