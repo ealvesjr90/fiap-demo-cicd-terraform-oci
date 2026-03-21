@@ -31,3 +31,7 @@ Thumbs.db
 *.log
 plan.txt
 outputs.json
+
+# Python
+__pycache__/
+*.py[cod]

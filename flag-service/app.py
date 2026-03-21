@@ -1,13 +1,12 @@
 import os
 import sys
 import psycopg2
-import requests
 from psycopg2.extras import RealDictCursor
 from psycopg2.pool import SimpleConnectionPool
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from functools import wraps
 import logging
+from shared.auth_middleware import require_auth
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
@@ -68,35 +67,6 @@ try:
 except psycopg2.OperationalError as e:
     log.critical(f"Erro fatal ao conectar ao PostgreSQL: {e}")
     sys.exit(1)
-
-# --- Middleware de Autenticação ---
-def require_auth(f):
-    """ Middleware para validar a chave de API contra o auth-service """
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            return jsonify({"error": "Authorization header obrigatório"}), 401
-        
-        try:
-            # Chama o /validate do auth-service
-            validate_url = f"{AUTH_SERVICE_URL}/validate"
-            response = requests.get(validate_url, headers={"Authorization": auth_header}, timeout=3)
-            
-            if response.status_code != 200:
-                log.warning(f"Falha na validação da chave (status: {response.status_code})")
-                return jsonify({"error": "Chave de API inválida"}), 401
-        
-        except requests.exceptions.Timeout:
-            log.error("Timeout ao conectar com o auth-service")
-            return jsonify({"error": "Serviço de autenticação indisponível (timeout)"}), 504 # Gateway Timeout
-        except requests.exceptions.RequestException as e:
-            log.error(f"Erro ao conectar com o auth-service: {e}")
-            return jsonify({"error": "Serviço de autenticação indisponível"}), 503 # Service Unavailable
-
-        # Se a chave for válida, continua para a rota
-        return f(*args, **kwargs)
-    return decorated
 
 # --- Endpoints da API ---
 
