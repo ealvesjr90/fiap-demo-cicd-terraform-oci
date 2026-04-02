@@ -255,7 +255,7 @@ func adminKeysHandler(masterKey string) http.HandlerFunc {
 func extractBearerToken(r *http.Request) string {
 	auth := r.Header.Get("Authorization")
 	parts := strings.SplitN(auth, " ", 2)
-	if len(parts) != 2 {
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
 		return ""
 	}
 	return strings.TrimSpace(parts[1])
