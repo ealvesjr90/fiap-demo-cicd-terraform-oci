@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -58,7 +59,7 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go a.sendEvaluationEvent(r.Context(), userID, flagName, result)
+	go a.sendEvaluationEvent(context.WithoutCancel(r.Context()), userID, flagName, result)
 
 	w.WriteHeader(http.StatusOK)
 	a.writeJSON(w, EvaluationResponse{
