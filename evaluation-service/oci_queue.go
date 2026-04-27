@@ -19,7 +19,7 @@ type EvaluationEvent struct {
 }
 
 // sendEvaluationEvent envia um evento para a fila OCI Queue
-func (a *App) sendEvaluationEvent(userID, flagName string, result bool) {
+func (a *App) sendEvaluationEvent(ctx context.Context, userID, flagName string, result bool) {
 	// Se o cliente ou ID da fila não foram configurados, apenas loga localmente e sai.
 	if a.QueueClient == nil || a.QueueID == "" {
 		log.Printf("[QUEUE_DISABLED] Evento: User '%s', Flag '%s', Result '%t'", userID, flagName, result)
@@ -46,12 +46,12 @@ func (a *App) sendEvaluationEvent(userID, flagName string, result bool) {
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	queueCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	log.Printf("Tentando enviar evento para fila %s...", a.QueueID)
 
-	_, err = a.QueueClient.PutMessages(ctx, queue.PutMessagesRequest{
+	_, err = a.QueueClient.PutMessages(queueCtx, queue.PutMessagesRequest{
 		QueueId: common.String(a.QueueID),
 		PutMessagesDetails: queue.PutMessagesDetails{
 			Messages: []queue.PutMessagesDetailsEntry{

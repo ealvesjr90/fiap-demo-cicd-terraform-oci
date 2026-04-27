@@ -48,7 +48,7 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := a.getDecision(userID, flagName)
+	result, err := a.getDecision(r.Context(), userID, flagName)
 	if err != nil {
 		if _, ok := err.(*NotFoundError); ok {
 			result = false
@@ -58,7 +58,7 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go a.sendEvaluationEvent(userID, flagName, result)
+	go a.sendEvaluationEvent(r.Context(), userID, flagName, result)
 
 	w.WriteHeader(http.StatusOK)
 	a.writeJSON(w, EvaluationResponse{
