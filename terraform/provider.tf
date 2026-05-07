@@ -18,6 +18,10 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = ">= 1.14.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9.0"
+    }
   }
 }
 
@@ -44,7 +48,7 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "oci"
-    args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id]
+    args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id, "--region", var.region]
   }
 }
 
@@ -56,7 +60,7 @@ provider "kubectl" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "oci"
-    args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id]
+    args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id, "--region", var.region]
   }
 }
 
@@ -68,7 +72,7 @@ provider "helm" {
     exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "oci"
-      args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id]
+      args        = ["ce", "cluster", "generate-token", "--cluster-id", module.oke.cluster_id, "--region", var.region]
     }
   }
 }

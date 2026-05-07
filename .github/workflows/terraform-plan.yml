@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
@@ -40,6 +40,7 @@ jobs:
           key_file=/home/runner/.oci/oci_api_key.pem
           EOF
           
+          sed -i 's/^[[:space:]]*//' ~/.oci/config
           chmod 600 ~/.oci/config
 
       # 🔥 NOVO STEP PARA DEBUG DO FINGERPRIN
