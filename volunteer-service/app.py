@@ -54,6 +54,11 @@ def register_volunteer():
     if not data or not all(k in data for k in ('name', 'email', 'ngo_id')):
         return jsonify({"error": "Campos obrigatorios ausentes"}), 400
 
+    try:
+        int(data['ngo_id'])
+    except (ValueError, TypeError):
+        return jsonify({"error": "ngo_id deve ser um número inteiro válido"}), 400
+
     volunteer_id = str(uuid.uuid4())
     row_value = {
         'id': volunteer_id,

@@ -42,7 +42,9 @@ func getOCIConfigProvider() (common.ConfigurationProvider, error) {
 }
 
 func main() {
-	_ = godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Aviso: não foi possível carregar .env: %v", err)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -55,8 +57,11 @@ func main() {
 	}
 
 	db, err := sql.Open("pgx", dbURL)
-	if err != nil || db.Ping() != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
+	if err != nil {
+		log.Fatalf("Erro ao abrir conexão com o banco de dados: %v", err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Erro ao verificar conexão com o banco de dados: %v", err)
 	}
 	log.Println("Conectado ao PostgreSQL (donation-service).")
 
@@ -123,7 +128,9 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		_ = json.NewEncoder(w).Encode(d)
+		if err := json.NewEncoder(w).Encode(d); err != nil {
+			log.Printf("Erro ao serializar resposta da doação: %v", err)
+		}
 		return
 	}
 
@@ -138,11 +145,21 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 		donations := []Donation{}
 		for rows.Next() {
 			var d Donation
-			_ = rows.Scan(&d.ID, &d.NgoID, &d.Amount, &d.DonorName, &d.Status, &d.CreatedAt)
+			if err := rows.Scan(&d.ID, &d.NgoID, &d.Amount, &d.DonorName, &d.Status, &d.CreatedAt); err != nil {
+				log.Printf("Erro ao ler linha de doação: %v", err)
+				continue
+			}
 			donations = append(donations, d)
 		}
+		if err := rows.Err(); err != nil {
+			log.Printf("Erro durante iteração de doações: %v", err)
+			http.Error(w, `{"error":"Erro ao processar dados"}`, http.StatusInternalServerError)
+			return
+		}
 
-		_ = json.NewEncoder(w).Encode(donations)
+		if err := json.NewEncoder(w).Encode(donations); err != nil {
+			log.Printf("Erro ao serializar lista de doações: %v", err)
+		}
 		return
 	}
 
@@ -150,10 +167,14 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) sendNotificationEvent(d Donation) {
-	body, _ := json.Marshal(d)
+	body, err := json.Marshal(d)
+	if err != nil {
+		log.Printf("Erro ao serializar doação para fila: %v", err)
+		return
+	}
 	content := string(body)
 
-	_, err := a.QueueClient.PutMessages(context.Background(), queue.PutMessagesRequest{
+	_, err = a.QueueClient.PutMessages(context.Background(), queue.PutMessagesRequest{
 		QueueId: &a.QueueID,
 		PutMessagesDetails: queue.PutMessagesDetails{
 			Messages: []queue.PutMessagesDetailsEntry{
@@ -165,5 +186,3 @@ func (a *App) sendNotificationEvent(d Donation) {
 		log.Printf("Falha ao enviar mensagem para OCI Queue: %v", err)
 	}
 }
-
-

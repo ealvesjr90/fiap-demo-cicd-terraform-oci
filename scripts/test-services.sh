@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 
 # Simple script to test the services from the terminal
 # Usage: ./scripts/test-services.sh [LOAD_BALANCER_IP]
