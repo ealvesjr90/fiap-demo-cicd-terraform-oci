@@ -11,7 +11,10 @@ spec:
         image: postgres:15-alpine
         env:
         - name: PGPASSWORD
-          value: "togglepass123"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_PASSWORD
         command: ["psql"]
         args: 
         - "-h"

@@ -34,9 +34,8 @@ variable "oke_image" {
 }
 
 variable "discord_webhook_url" {
-  description = "Discord Webhook URL for alert notifications"
+  description = "Discord Webhook URL for alert notifications. Must be provided via TF_VAR or .tfvars — never hardcode."
   type        = string
-  default     = "https://discord.com/api/webhooks/1498992712941305999/6tqHDK7YC_sxTDS-WlOvM2W4JOKZF9WeQ36N3qQql_UpARCPX2pC0wy-I4wpdTe--VOc"
   sensitive   = true
 }
 

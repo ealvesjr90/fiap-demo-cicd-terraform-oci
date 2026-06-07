@@ -52,9 +52,15 @@ spec:
         - name: POSTGRES_DB
           value: "ngo_db"
         - name: POSTGRES_USER
-          value: "togglemaster_user"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: "togglepass123"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_PASSWORD
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data

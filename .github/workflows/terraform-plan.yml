@@ -42,14 +42,6 @@ jobs:
           
           chmod 600 ~/.oci/config
 
-      # 🔥 NOVO STEP PARA DEBUG DO FINGERPRIN
-      - name: Debug OCI Fingerprint
-        run: |
-          echo "Fingerprint da chave usada no runner:"
-          openssl rsa -pubout -outform DER -in ~/.oci/oci_api_key.pem | openssl md5 -c
-          echo "Fingerprint salvo no Secret:"
-          echo "${{ secrets.OCI_FINGERPRINT }}"
-
       - name: Install OCI CLI
         run: |
           curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults

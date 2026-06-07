@@ -41,12 +41,12 @@ resource "oci_core_security_list" "public_sl" {
   vcn_id         = oci_core_vcn.main.id
   display_name   = "public-security-list"
 
-  # SSH acesso externo
+  # SSH restricted to VCN internal traffic only (use bastion/VPN for external access)
   ingress_security_rules {
 
     protocol = "6" # TCP
 
-    source = "0.0.0.0/0"
+    source = "10.0.0.0/16"
 
     tcp_options {
       min = 22
