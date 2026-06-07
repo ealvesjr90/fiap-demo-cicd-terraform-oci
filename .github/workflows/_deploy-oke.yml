@@ -1,0 +1,82 @@
+name: "Reusable: Deploy to OKE"
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+      deploy_infra:
+        required: false
+        type: boolean
+        default: true
+      db_init_wait_job:
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  deploy:
+    name: "Deploy to OKE"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure OCI Credentials
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 -d > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          cat > ~/.oci/config << EOF
+          [DEFAULT]
+          user=${{ secrets.OCI_USER_OCID }}
+          fingerprint=${{ secrets.OCI_FINGERPRINT }}
+          tenancy=${{ secrets.OCI_TENANCY_OCID }}
+          region=${{ secrets.OCI_REGION }}
+          key_file=/home/runner/.oci/oci_api_key.pem
+          EOF
+          sed -i 's/^[[:space:]]*//' ~/.oci/config
+          chmod 600 ~/.oci/config
+
+      - name: Install OCI CLI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Get Kubeconfig
+        run: |
+          $HOME/bin/oci ce cluster create-kubeconfig --cluster-id ${{ secrets.OCI_OKE_CLUSTER_ID }} --file $HOME/.kube/config --region ${{ secrets.OCI_REGION }} --token-version 2.0.0
+
+      - name: Create OCIR Image Pull Secret
+        run: |
+          kubectl create secret docker-registry ocir-secret \
+            --docker-server=${{ secrets.OCI_REGION }}.ocir.io \
+            --docker-username="${{ secrets.OCI_TENANCY_NAMESPACE }}/${{ secrets.OCI_USERNAME }}" \
+            --docker-password="${{ secrets.OCI_AUTH_TOKEN }}" \
+            --docker-email=noreply@oci.com \
+            -n togglemaster \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Infrastructure (PostgreSQL + Redis)
+        if: ${{ inputs.deploy_infra }}
+        run: |
+          kubectl apply -f k8s-infra/postgres.yaml
+          kubectl apply -f k8s-infra/redis.yaml
+          kubectl rollout status deployment/postgres -n togglemaster --timeout=120s || true
+          kubectl rollout status deployment/redis -n togglemaster --timeout=120s || true
+
+      - name: Run DB Init Jobs
+        if: ${{ inputs.db_init_wait_job != '' }}
+        run: |
+          kubectl delete job db-init-ngo -n togglemaster --ignore-not-found
+          kubectl delete job db-init-donation -n togglemaster --ignore-not-found
+          kubectl apply -f k8s-infra/db-init-job.yaml
+          kubectl wait --for=condition=complete job/${{ inputs.db_init_wait_job }} -n togglemaster --timeout=120s || true
+
+      - name: Deploy to K8s
+        run: |
+          kubectl apply -f k8s-common/ingress.yaml
+          kubectl apply -f ${{ inputs.service_name }}/k8s/manifests.yaml
+          kubectl set image deployment/${{ inputs.service_name }} ${{ inputs.service_name }}=${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY_NAMESPACE }}/togglemaster/${{ inputs.service_name }}:${{ github.sha }} -n togglemaster
+          kubectl rollout status deployment/${{ inputs.service_name }} -n togglemaster
