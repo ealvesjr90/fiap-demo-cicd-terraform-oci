@@ -36,7 +36,11 @@ def create_ngo():
     if not data or not all(k in data for k in ('name', 'email', 'cause', 'city')):
         return jsonify({"error": "Campos obrigatórios ausentes"}), 400
     
-    conn = pool.getconn()
+    try:
+        conn = pool.getconn()
+    except Exception as e:
+        log.error(f"Erro ao obter conexão do pool: {e}")
+        return jsonify({"error": "Serviço temporariamente indisponível"}), 503
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
@@ -58,7 +62,11 @@ def create_ngo():
 
 @app.route('/ngos', methods=['GET'])
 def get_ngos():
-    conn = pool.getconn()
+    try:
+        conn = pool.getconn()
+    except Exception as e:
+        log.error(f"Erro ao obter conexão do pool: {e}")
+        return jsonify({"error": "Serviço temporariamente indisponível"}), 503
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM ngos ORDER BY id DESC")
