@@ -106,6 +106,19 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if d.NgoID <= 0 {
+			http.Error(w, `{"error":"ngo_id deve ser um inteiro positivo"}`, http.StatusBadRequest)
+			return
+		}
+		if d.Amount <= 0 {
+			http.Error(w, `{"error":"amount deve ser maior que zero"}`, http.StatusBadRequest)
+			return
+		}
+		if d.DonorName == "" {
+			http.Error(w, `{"error":"donor_name e obrigatorio"}`, http.StatusBadRequest)
+			return
+		}
+
 		d.Status = "APPROVED"
 		err := a.DB.QueryRow(
 			"INSERT INTO donations (ngo_id, amount, donor_name, status) VALUES ($1, $2, $3, $4) RETURNING id, created_at",
