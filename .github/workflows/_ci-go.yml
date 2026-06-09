@@ -1,0 +1,63 @@
+name: "Reusable: Go Service CI"
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+      go_version:
+        required: false
+        type: string
+        default: "1.21"
+
+jobs:
+  lint-and-test:
+    name: "Lint & Unit Test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go_version }}
+          cache-dependency-path: ${{ inputs.service_name }}/go.sum
+
+      - name: Go Mod Tidy
+        run: |
+          cd ${{ inputs.service_name }}
+          go mod tidy
+
+      - name: Go Lint
+        run: |
+          cd ${{ inputs.service_name }}
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          $(go env GOPATH)/bin/golangci-lint run --timeout=5m
+
+      - name: Unit Test
+        run: |
+          cd ${{ inputs.service_name }}
+          go test -v ./...
+
+  security-scan:
+    name: "Security Scan (SAST & SCA)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Gosec (SAST)
+        uses: securego/gosec@master
+        with:
+          args: ./${{ inputs.service_name }}/...
+
+      - name: Run Trivy (SCA - Filesystem)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "./${{ inputs.service_name }}"
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL"

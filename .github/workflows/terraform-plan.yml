@@ -1,51 +1,38 @@
-name: 'Terraform Plan'
+name: "Terraform Plan"
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'terraform/**'
+    paths: ["terraform/**"]
   workflow_dispatch:
 
 env:
-  TF_VERSION: 'latest'
-  WORKING_DIR: './terraform'
+  TF_VERSION: "latest"
+  WORKING_DIR: "./terraform"
 
 jobs:
   terraform-plan:
-    name: 'Terraform Plan'
+    name: "Terraform Plan"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Configure OCI Credentials
-        run: |
-          mkdir -p ~/.oci
-          echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 -d > ~/.oci/oci_api_key.pem
-          chmod 600 ~/.oci/oci_api_key.pem
-          
-          cat > ~/.oci/config << EOF
-          [DEFAULT]
-          user=${{ secrets.OCI_USER_OCID }}
-          fingerprint=${{ secrets.OCI_FINGERPRINT }}
-          tenancy=${{ secrets.OCI_TENANCY_OCID }}
-          region=${{ secrets.OCI_REGION }}
-          key_file=/home/runner/.oci/oci_api_key.pem
-          EOF
-          sed -i 's/^[[:space:]]*//' ~/.oci/config
-          chmod 600 ~/.oci/config
-
-      - name: Install OCI CLI
-        run: |
-          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
-          echo "$HOME/bin" >> $GITHUB_PATH
+      - name: Setup OCI Credentials
+        uses: ./.github/actions/setup-oci-credentials
+        with:
+          oci_user_ocid: ${{ secrets.OCI_USER_OCID }}
+          oci_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+          oci_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
+          oci_region: ${{ secrets.OCI_REGION }}
+          oci_private_key: ${{ secrets.OCI_PRIVATE_KEY }}
+          install_oci_cli: "true"
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR }}
@@ -67,5 +54,4 @@ jobs:
 
       - name: Notify Success
         if: success()
-        run: echo "✅ Terraform Plan completed successfully! Review the plan and run Apply manually."
-
+        run: echo "Terraform Plan completed successfully! Review the plan and run Apply manually."

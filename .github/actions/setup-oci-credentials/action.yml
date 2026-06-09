@@ -1,0 +1,52 @@
+name: "Setup OCI Credentials"
+description: "Configure OCI credentials and optionally install OCI CLI"
+
+inputs:
+  oci_user_ocid:
+    description: "OCI User OCID"
+    required: true
+  oci_tenancy_ocid:
+    description: "OCI Tenancy OCID"
+    required: true
+  oci_fingerprint:
+    description: "OCI API Key Fingerprint"
+    required: true
+  oci_region:
+    description: "OCI Region"
+    required: true
+  oci_private_key:
+    description: "OCI Private Key (base64 encoded)"
+    required: true
+  install_oci_cli:
+    description: "Whether to install OCI CLI"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure OCI Credentials
+      shell: bash
+      run: |
+        mkdir -p ~/.oci
+        echo "${{ inputs.oci_private_key }}" | base64 -d > ~/.oci/oci_api_key.pem
+        chmod 600 ~/.oci/oci_api_key.pem
+
+        cat > ~/.oci/config << EOF
+        [DEFAULT]
+        user=${{ inputs.oci_user_ocid }}
+        fingerprint=${{ inputs.oci_fingerprint }}
+        tenancy=${{ inputs.oci_tenancy_ocid }}
+        region=${{ inputs.oci_region }}
+        key_file=/home/runner/.oci/oci_api_key.pem
+        EOF
+
+        sed -i 's/^[[:space:]]*//' ~/.oci/config
+        chmod 600 ~/.oci/config
+
+    - name: Install OCI CLI
+      if: inputs.install_oci_cli == 'true'
+      shell: bash
+      run: |
+        curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
+        echo "$HOME/bin" >> $GITHUB_PATH

@@ -1,0 +1,54 @@
+name: "Reusable: Python Service CI"
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+
+jobs:
+  lint-and-test:
+    name: "Lint & Unit Test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          cd ${{ inputs.service_name }}
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
+      - name: Python Lint
+        run: |
+          cd ${{ inputs.service_name }}
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  security-scan:
+    name: "Security Scan (SAST & SCA)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Bandit (SAST)
+        run: |
+          pip install bandit
+          bandit -r ${{ inputs.service_name }}/
+
+      - name: Run Trivy (SCA - Filesystem)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "./${{ inputs.service_name }}"
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL"
