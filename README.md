@@ -287,6 +287,41 @@ terraform plan -var-file=envs/dev.tfvars
 terraform apply -var-file=envs/dev.tfvars
 ```
 
+### Disaster Recovery — Warm Standby (Opcao B: Ativo-Passivo)
+
+Estrategia de DR **ativo-passivo**: um ambiente espelho (warm standby) e mantido
+em uma **regiao secundaria** (`sa-vinhedo-1`), pronto para assumir a carga caso a
+regiao primaria (`sa-saopaulo-1`) fique indisponivel.
+
+Como a mesma configuracao Terraform e usada nas duas regioes (o modulo OKE ja
+resolve AD e imagem dos nodes dinamicamente por regiao), o espelho sobe com **um
+comando**, em um **workspace dedicado** (`dr`) que isola o state:
+
+```bash
+# plano do ambiente espelho (evidencia de DR)
+./scripts/dr-standby.sh plan
+
+# provisiona/atualiza o warm standby em sa-vinhedo-1
+./scripts/dr-standby.sh apply
+
+# remove o ambiente DR
+./scripts/dr-standby.sh destroy
+```
+
+Equivalente manual:
+
+```bash
+cd terraform
+terraform workspace select dr || terraform workspace new dr
+terraform plan  -var-file=envs/dr.tfvars
+terraform apply -var-file=envs/dr.tfvars
+```
+
+- **Regiao secundaria:** `sa-vinhedo-1` (`terraform/envs/dr.tfvars`).
+- **Isolamento de state:** workspace `dr` (state em `env:/dr/...` no mesmo backend OCI Object Storage), sem afetar o ambiente primario.
+- **Portabilidade:** `region`, AD e imagem do OKE nao dependem de OCIDs fixos por regiao.
+- **Evidencia via CI:** workflow `terraform-dr-plan.yml` (manual) gera o `terraform plan` do warm standby em `sa-vinhedo-1`.
+
 ---
 
 # CI/CD & GitOps
@@ -298,6 +333,7 @@ Pipelines automatizadas via GitHub Actions:
 | `terraform-plan.yml` | Push em `terraform/**` | Terraform Plan |
 | `terraform-apply.yml` | Manual | Terraform Apply (requer aprovacao) |
 | `terraform-destroy.yml` | Manual | Terraform Destroy |
+| `terraform-dr-plan.yml` | Manual | Terraform Plan do warm standby (DR) em `sa-vinhedo-1` |
 | `ngo-service-deploy.yml` | Push em `ngo-service/**` | Build + Deploy NGO Service |
 | `donation-service-deploy.yml` | Push em `donation-service/**` | Build + Deploy Donation Service |
 | `volunteer-service-deploy.yml` | Push em `volunteer-service/**` | Build + Deploy Volunteer Service |
@@ -336,7 +372,7 @@ Definir:
 - SLIs
 - SLOs
 - Error Budgets
-- Estrategias de Disaster Recovery
+- Estrategias de Disaster Recovery — **implementado** (warm standby ativo-passivo em `sa-vinhedo-1`; ver secao "Disaster Recovery — Warm Standby")
 - Alertas inteligentes
 - Health Checks
 - Auto Healing

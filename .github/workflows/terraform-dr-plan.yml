@@ -1,0 +1,65 @@
+name: 'Terraform DR Plan (Warm Standby)'
+
+# Opcao B - Disaster Recovery ativo-passivo.
+# Gera o `terraform plan` do ambiente espelho na regiao secundaria (sa-vinhedo-1),
+# em um workspace isolado ("dr"), servindo como evidencia da estrategia de DR.
+
+on:
+  workflow_dispatch:
+
+env:
+  TF_VERSION: 'latest'
+  WORKING_DIR: './terraform'
+
+jobs:
+  terraform-dr-plan:
+    name: 'Terraform DR Plan'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure OCI Credentials
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 -d > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+          cat > ~/.oci/config << EOF
+          [DEFAULT]
+          user=${{ secrets.OCI_USER_OCID }}
+          fingerprint=${{ secrets.OCI_FINGERPRINT }}
+          tenancy=${{ secrets.OCI_TENANCY_OCID }}
+          region=sa-vinhedo-1
+          key_file=/home/runner/.oci/oci_api_key.pem
+          EOF
+
+          chmod 600 ~/.oci/config
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform init
+
+      - name: Select DR Workspace
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform workspace select dr || terraform workspace new dr
+
+      - name: Terraform Plan (DR - sa-vinhedo-1)
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          # A regiao vem de envs/dr.tfvars (sa-vinhedo-1) e tem precedencia sobre TF_VAR_*.
+          TF_VAR_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid: ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint: ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_compartment_id: ${{ secrets.OCI_COMPARTMENT_ID }}
+        run: terraform plan -var-file=envs/dr.tfvars -input=false
+
+      - name: Notify
+        if: success()
+        run: echo "✅ DR Plan (warm standby em sa-vinhedo-1) gerado com sucesso."
