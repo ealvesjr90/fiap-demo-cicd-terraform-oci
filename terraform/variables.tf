@@ -24,13 +24,15 @@ variable "compartment_id" {
 }
 
 variable "availability_domain" {
-  description = "Availability Domain name where compute resources will be placed (e.g. AD-1)"
+  description = "Availability Domain name where compute resources will be placed. Optional: the OKE module resolves the AD dynamically, so this can be left empty for region-agnostic (DR) deployments."
   type        = string
+  default     = ""
 }
 
 variable "oke_image" {
-  description = "OCID of the OCI compute image used for OKE worker nodes"
+  description = "OCID of the OCI compute image used for OKE worker nodes. Optional: the OKE module resolves the node image dynamically per region, so this can be left empty for region-agnostic (DR) deployments."
   type        = string
+  default     = ""
 }
 
 variable "discord_webhook_url" {
