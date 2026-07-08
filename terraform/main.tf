@@ -5,8 +5,11 @@ module "networking" {
 }
 
 module "ocir" {
-  source         = "./modules/ocir"
-  compartment_id = var.compartment_id
+  source = "./modules/ocir"
+  # OCIR repos sao criados no compartment RAIZ (tenancy), que e onde o
+  # `docker push` os cria automaticamente. Usar o mesmo compartment garante que
+  # o import abaixo os adote em vez de tentar recria-los (409-NAMESPACE_CONFLICT).
+  compartment_id = var.tenancy_ocid
   tags           = var.common_tags
 }
 
@@ -58,17 +61,17 @@ module "observability" {
 # `terraform state list` shows the three module.ocir resources as tracked.
 # ---------------------------------------------------------------------------
 data "oci_artifacts_container_repositories" "existing_ngo_service" {
-  compartment_id = var.compartment_id
+  compartment_id = var.tenancy_ocid
   display_name   = "hackathon-repo/ngo-service"
 }
 
 data "oci_artifacts_container_repositories" "existing_donation_service" {
-  compartment_id = var.compartment_id
+  compartment_id = var.tenancy_ocid
   display_name   = "hackathon-repo/donation-service"
 }
 
 data "oci_artifacts_container_repositories" "existing_volunteer_service" {
-  compartment_id = var.compartment_id
+  compartment_id = var.tenancy_ocid
   display_name   = "hackathon-repo/volunteer-service"
 }
 
