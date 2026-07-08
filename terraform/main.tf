@@ -73,16 +73,19 @@ data "oci_artifacts_container_repositories" "existing_volunteer_service" {
 }
 
 import {
-  to = module.ocir.oci_artifacts_container_repository.ngo_service
-  id = data.oci_artifacts_container_repositories.existing_ngo_service.container_repository_collection[0].items[0].id
+  for_each = toset(try([data.oci_artifacts_container_repositories.existing_ngo_service.container_repository_collection[0].items[0].id], []))
+  to       = module.ocir.oci_artifacts_container_repository.ngo_service
+  id       = each.value
 }
 
 import {
-  to = module.ocir.oci_artifacts_container_repository.donation_service
-  id = data.oci_artifacts_container_repositories.existing_donation_service.container_repository_collection[0].items[0].id
+  for_each = toset(try([data.oci_artifacts_container_repositories.existing_donation_service.container_repository_collection[0].items[0].id], []))
+  to       = module.ocir.oci_artifacts_container_repository.donation_service
+  id       = each.value
 }
 
 import {
-  to = module.ocir.oci_artifacts_container_repository.volunteer_service
-  id = data.oci_artifacts_container_repositories.existing_volunteer_service.container_repository_collection[0].items[0].id
+  for_each = toset(try([data.oci_artifacts_container_repositories.existing_volunteer_service.container_repository_collection[0].items[0].id], []))
+  to       = module.ocir.oci_artifacts_container_repository.volunteer_service
+  id       = each.value
 }
