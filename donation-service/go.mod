@@ -3,6 +3,7 @@ module donation-service
 go 1.21
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/oracle/oci-go-sdk/v65 v65.78.0
